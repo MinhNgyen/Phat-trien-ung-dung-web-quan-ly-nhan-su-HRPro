@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRPro – Quản lý Nhân sự</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ===================== LOGIN =====================
+     Màn đăng nhập demo. Tài khoản được kiểm tra trong DB.users ở app.js,
+     không có backend hoặc API xác thực thật. ===================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">⚡ HRPro</div>
+    <div class="login-sub">Hệ thống quản lý nhân sự</div>
+    <div class="form-group"><label class="form-label">Tên đăng nhập</label>
+      <input class="form-control" id="login-user" placeholder="admin" autocomplete="username"></div>
+    <div class="form-group"><label class="form-label">Mật khẩu</label>
+      <input class="form-control" id="login-pass" type="password" placeholder="••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div id="login-error" class="login-error"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px" onclick="doLogin()">Đăng nhập</button>
+    <div class="login-hint" id="login-hint"></div>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL =====================
+     Khung chính sau đăng nhập: sidebar + header + page-content.
+     app.js sẽ bật/tắt #login-screen và #app-shell tùy trạng thái SESSION. ===================== -->
+<div id="app-shell" style="display:none;width:100%">
+
+<!-- Sidebar dùng data-page để navigate() biết cần mở màn nào.
+     data-roles cho biết role nào được thấy menu này. -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">⚡ HRPro</div>
+    <div class="logo-sub" id="sidebar-sub">Quản lý Nhân sự</div>
+  </div>
+  <div class="nav-section" data-roles="admin,hr,accountant,manager,employee">Tổng quan</div>
+  <div class="nav-item active" data-page="dashboard" data-roles="admin,hr,accountant,manager,employee" onclick="navigate('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+  <div class="nav-section" data-roles="admin,hr,manager">Nhân sự</div>
+  <div class="nav-item" data-page="employees" data-roles="admin,hr,manager" onclick="navigate('employees',this)"><span class="icon">👥</span> Nhân viên</div>
+  <div class="nav-item" data-page="departments" data-roles="admin,hr" onclick="navigate('departments',this)"><span class="icon">🏢</span> Phòng ban</div>
+  <div class="nav-item" data-page="shifts" data-roles="admin,hr" onclick="navigate('shifts',this)"><span class="icon">📅</span> Ca làm việc</div>
+  <div class="nav-section" data-roles="admin,hr,accountant,manager,employee">Vận hành</div>
+  <div class="nav-item" data-page="attendance" data-roles="admin,hr,manager,employee" onclick="navigate('attendance',this)"><span class="icon">✅</span> Chấm công<span class="nbadge" id="late-badge">0</span></div>
+  <div class="nav-item" data-page="salary" data-roles="admin,accountant,employee" onclick="navigate('salary',this)"><span class="icon">💰</span> Tính lương</div>
+  <div class="nav-item" data-page="performance" data-roles="admin,hr,manager,employee" onclick="navigate('performance',this)"><span class="icon">🎯</span> Hiệu suất KPI</div>
+  <div class="nav-section" data-roles="admin,hr,accountant,manager">Phân tích</div>
+  <div class="nav-item" data-page="reports" data-roles="admin,hr,accountant,manager" onclick="navigate('reports',this)"><span class="icon">📈</span> Báo cáo & Thống kê</div>
+  <div class="nav-item" data-page="settings" data-roles="admin" onclick="navigate('settings',this)"><span class="icon">⚙️</span> Cài đặt</div>
+  <div class="sidebar-bottom">
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">AD</div>
+      <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">Quản trị viên</div></div>
+    </div>
+    <button class="btn btn-outline logout-btn" onclick="doLogout()">↩ Đăng xuất</button>
+  </div>
+</nav>
+
+<!-- Main area: header sticky phía trên, nội dung từng page nằm trong #page-content. -->
+<div id="main">
+  <header>
+    <div class="header-title" id="header-title">Dashboard</div>
+    <div class="header-search"><span>🔍</span><input type="text" id="global-search" placeholder="Tìm kiếm nhân viên..." oninput="handleGlobalSearch(this.value)"></div>
+    <div class="header-actions">
+      <button class="btn btn-outline notif-btn">🔔<span class="notif-dot"></span></button>
+      <button class="btn btn-primary" data-roles="admin,hr" onclick="openAddModal()">+ Thêm nhân viên</button>
+    </div>
+  </header>
+
+  <div id="page-content">
+
+  <!-- DASHBOARD
+       Các số liệu/charts ở đây đều được render bởi renderDashboard(). -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>Tổng quan hệ thống</h1>
+      <p>Tất cả số liệu cập nhật tự động khi chỉnh sửa dữ liệu — lưu cố định trên trình duyệt (localStorage)</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#eff6ff">👥</div>
+        <div class="stat-value" id="stat-total">25</div>
+        <div class="stat-label">Tổng nhân viên</div>
+        <div class="stat-change up" id="stat-active-lbl">đang làm việc</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f0fdf4">✅</div>
+        <div class="stat-value" id="stat-attend">—</div>
+        <div class="stat-label">Tỷ lệ đi làm hôm nay</div>
+        <div class="stat-change" id="stat-attend-lbl" style="color:var(--text-muted)">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fffbeb">💰</div>
+        <div class="stat-value" id="stat-salary-lbl">—</div>
+        <div class="stat-label">Tổng quỹ lương / tháng</div>
+        <div class="stat-change" id="stat-salary-sub" style="color:var(--text-muted)">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fdf2f8">🎯</div>
+        <div class="stat-value" id="stat-kpi-lbl">—</div>
+        <div class="stat-label">KPI trung bình</div>
+        <div class="stat-change up" id="stat-kpi-sub">Kỳ hiện tại</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Quỹ lương theo phòng ban</div>
+          <span style="font-size:11px;color:var(--text-muted)">↻ Tự động cập nhật</span>
+        </div>
+        <div class="card-body">
+          <div class="bar-chart-wrap" id="chart-dept-salary" style="height:150px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Nhân sự theo phòng ban</div></div>
+        <div class="card-body">
+          <div class="donut-wrap">
+            <svg id="donut-svg" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Danh sách nhân viên gần đây</div>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 10px" onclick="navigate('employees')">Xem tất cả</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Nhân viên</th><th>Phòng ban</th><th>Lương CB</th><th>KPI</th><th>Trạng thái</th></tr></thead>
+          <tbody id="dash-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEES
+       Quản lý nhân viên. Cột ca làm lấy từ bảng employeeShifts trong app.js,
+       không lấy trực tiếp từ employee.shift nữa. -->
+  <div class="page" id="page-employees">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Quản lý Nhân viên</h1><p id="emp-count-lbl">25 nhân viên</p></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="exportEmployeesCSV()">📤 Xuất CSV</button>
+        <button class="btn btn-primary" data-roles="admin,hr" onclick="openAddModal()">+ Thêm nhân viên</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'tab-list')">📋 Danh sách</div>
+      <div class="tab" onclick="switchTab(this,'tab-cards')">🗂️ Thẻ nhân viên</div>
+    </div>
+    <div class="tab-pane active" id="tab-list">
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input class="form-control" style="width:200px" id="emp-search" placeholder="🔍 Tìm tên / mã NV..." oninput="renderEmployeeTable()">
+            <select class="form-control" style="width:160px" id="emp-dept-filter" onchange="renderEmployeeTable()"><option value="">Tất cả phòng ban</option></select>
+            <select class="form-control" style="width:150px" id="emp-status-filter" onchange="renderEmployeeTable()">
+              <option value="">Tất cả trạng thái</option><option value="active">Đang làm</option><option value="leave">Nghỉ phép</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Mã NV</th><th>Họ và tên</th><th>Chức vụ</th><th>Phòng ban</th><th>Ca làm</th><th>Ngày vào</th><th>Lương CB (VNĐ)</th><th>KPI</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+            <tbody id="emp-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tab-pane" id="tab-cards">
+      <div class="emp-cards-grid" id="emp-cards-grid"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-departments">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Phòng ban & Tổ chức</h1><p>Quản lý phòng ban: mã, trưởng phòng, mô tả</p></div>
+      <button class="btn btn-primary" data-roles="admin,hr" onclick="openDeptModal()">+ Thêm phòng ban</button>
+    </div>
+    <div class="grid-3" id="dept-cards"></div>
+  </div>
+
+  <!-- SHIFTS
+       Danh mục ca làm. Khi xóa/sửa ca, app.js sẽ cập nhật các link liên quan. -->
+  <div class="page" id="page-shifts">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Ca làm việc</h1><p>Quản lý ca: giờ vào/ra, quy định đi muộn, hệ số OT</p></div>
+      <button class="btn btn-primary" data-roles="admin,hr" onclick="openShiftModal()">+ Thêm ca làm</button>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title">Danh sách ca làm việc</div></div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Mã ca</th><th>Tên ca</th><th>Giờ vào</th><th>Giờ ra</th><th>Cho phép muộn</th><th>Hệ số OT</th><th>Số NV</th><th>Thao tác</th></tr></thead>
+          <tbody id="shift-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Số nhân viên mỗi ca</div></div>
+      <div class="card-body"><div class="bar-chart-wrap" id="chart-shift" style="height:140px"></div></div>
+    </div>
+  </div>
+  <!-- ATTENDANCE
+       Mỗi nhân viên có thể xuất hiện nhiều dòng trong một ngày nếu được gán nhiều ca.
+       Nút Chi tiết mở modal #att-detail-modal để xem lý do late/về sớm. -->
+  <div class="page" id="page-attendance">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Chấm công</h1><p>Dữ liệu chấm công thật theo ngày — trạng thái tính tự động từ giờ vào/ra và quy định ca</p></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input class="form-control" type="date" id="att-date" style="width:160px" onchange="renderAttendance()">
+        <button class="btn btn-outline" onclick="exportAttendanceCSV()">📤 Xuất CSV</button>
+        <button class="btn btn-primary" data-roles="admin,hr,manager" onclick="openCheckinModal()">✅ Chấm công thủ công</button>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="att-p" style="color:var(--success)">—</div><div class="stat-label">Bản ghi đúng giờ</div></div>
+      <div class="stat-card"><div class="stat-value" id="att-l" style="color:var(--warning)">—</div><div class="stat-label">Bản ghi muộn / về sớm</div></div>
+      <div class="stat-card"><div class="stat-value" id="att-a" style="color:var(--danger)">—</div><div class="stat-label">Vắng mặt</div></div>
+      <div class="stat-card"><div class="stat-value" id="att-lv" style="color:var(--primary)">—</div><div class="stat-label">Nghỉ phép</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Bảng chấm công ngày <span id="att-date-lbl"></span></div></div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Nhân viên</th><th>Phòng ban</th><th>Ca làm</th><th>Giờ vào</th><th>Giờ ra</th><th>Tình trạng</th><th>Ghi chú</th><th>Chi tiết</th></tr></thead>
+          <tbody id="att-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALARY
+       Bảng lương tính từ dữ liệu attendance + cấu hình settings. -->
+  <div class="page" id="page-salary">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Tính lương</h1><p id="salary-period-lbl">Bảng lương theo kỳ — tính từ bảng công thật + cấu hình ở trang Cài đặt</p></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input class="form-control" type="month" id="sal-month" style="width:160px" onchange="renderSalary()">
+        <button class="btn btn-outline" onclick="exportSalaryCSV()">📄 Xuất bảng lương</button>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="sal-total" style="font-size:18px;color:var(--success)">—</div><div class="stat-label">Tổng thực chi (VNĐ)</div></div>
+      <div class="stat-card"><div class="stat-value" id="sal-avg">—</div><div class="stat-label">Thực nhận TB / người</div></div>
+      <div class="stat-card"><div class="stat-value" id="sal-max">—</div><div class="stat-label">Thực nhận cao nhất</div></div>
+      <div class="stat-card"><div class="stat-value" id="sal-min">—</div><div class="stat-label">Thực nhận thấp nhất</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <div class="card-title">Phân phối mức lương thực nhận</div>
+        <span style="font-size:11px;color:var(--text-muted)" id="sal-filter-hint">Nhấp vào cột để lọc bảng bên dưới</span>
+      </div>
+      <div class="card-body"><div class="bar-chart-wrap" id="chart-salary-dist" style="height:170px"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Bảng lương chi tiết</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <select class="form-control" style="width:180px;font-size:13px;padding:6px 10px" id="sal-dept-filter" onchange="renderSalaryTable()"><option value="">Tất cả phòng ban</option></select>
+          <span class="badge" id="sal-status-badge"></span>
+          <button class="btn btn-success" data-roles="admin,accountant" id="sal-confirm-btn" style="font-size:12.5px;padding:6px 12px" onclick="toggleSalaryLock()">🔒 Kế toán chốt lương</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th>Nhân viên</th><th>Phòng ban</th><th>Lương CB</th><th>Công thực tế</th>
+            <th>Phụ cấp</th><th>OT</th><th>Trừ muộn/vắng</th><th>BH (10.5%)</th><th>Thuế TNCN</th><th>Thưởng/Phạt</th><th>Thực nhận</th><th></th>
+          </tr></thead>
+          <tbody id="salary-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="page" id="page-performance">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div><h1>Hiệu suất & KPI</h1><p>KPI tổng hợp từ nhiều tiêu chí có trọng số, do quản lý/HR chấm theo kỳ</p></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select class="form-control" id="kpi-period" style="width:150px" onchange="renderPerformance()"></select>
+        <button class="btn btn-outline" onclick="exportKpiCSV()">📤 Xuất CSV</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">KPI trung bình theo phòng ban</div></div>
+        <div class="card-body" id="kpi-dept-bars"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Top 3 nhân viên xuất sắc</div></div>
+        <div class="card-body" id="kpi-top3"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Bảng đánh giá toàn bộ nhân viên</div>
+        <span style="font-size:11px;color:var(--text-muted)">Tiêu chí: doanh số 25% · chuyên cần 20% · task 25% · deadline 15% · chất lượng 15%</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>#</th><th>Nhân viên</th><th>Phòng ban</th><th>Điểm KPI</th><th>Tiến độ</th><th>Xếp loại</th><th>Người đánh giá</th><th data-roles="admin,hr,manager"></th></tr></thead>
+          <tbody id="kpi-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-reports">
+    <div class="page-header"><h1>Báo cáo & Thống kê</h1><p>Tổng hợp tự động từ dữ liệu nhân viên, chấm công và lương</p></div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Số nhân viên theo phòng ban</div></div>
+        <div class="card-body"><div class="bar-chart-wrap" id="chart-report-dept" style="height:140px"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Tỷ trọng quỹ lương theo phòng ban</div></div>
+        <div class="card-body" id="report-salary-share"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Xuất báo cáo</div></div>
+      <div class="card-body">
+        <div class="grid-3">
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+            <div style="font-size:26px;margin-bottom:8px">📊</div>
+            <div style="font-weight:600">Danh sách nhân viên</div>
+            <div style="font-size:12px;color:var(--text-muted);margin:4px 0 12px">Hồ sơ nhân sự đầy đủ</div>
+            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="exportEmployeesCSV()">📤 Xuất CSV</button>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+            <div style="font-size:26px;margin-bottom:8px">💰</div>
+            <div style="font-weight:600">Bảng lương tháng</div>
+            <div style="font-size:12px;color:var(--text-muted);margin:4px 0 12px">Phụ cấp · OT · khấu trừ · thực nhận</div>
+            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" data-roles="admin,accountant" onclick="exportSalaryCSV()">📄 Xuất CSV</button>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center">
+            <div style="font-size:26px;margin-bottom:8px">🎯</div>
+            <div style="font-weight:600">Báo cáo KPI</div>
+            <div style="font-size:12px;color:var(--text-muted);margin:4px 0 12px">Xếp loại · thứ hạng · điểm KPI</div>
+            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="exportKpiCSV()">📊 Xuất CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-settings">
+    <div class="page-header"><h1>Cài đặt hệ thống</h1><p>Các tham số dưới đây được dùng trực tiếp khi tính lương</p></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Thông tin công ty</div></div>
+        <div class="card-body">
+          <div class="form-group"><label class="form-label">Tên công ty</label><input class="form-control" id="set-company"></div>
+          <div class="form-group"><label class="form-label">Quy mô nhân sự</label><input class="form-control" id="setting-size" readonly></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="set-email"></div>
+          <div class="form-actions"><button class="btn btn-primary" onclick="saveSettings()">💾 Lưu</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Cấu hình lương & bảo hiểm</div></div>
+        <div class="card-body">
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">Phụ cấp ăn trưa (VNĐ)</label><input class="form-control" type="number" id="set-lunch"></div>
+            <div class="form-group"><label class="form-label">Phụ cấp xăng xe (VNĐ)</label><input class="form-control" type="number" id="set-fuel"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">Phụ cấp điện thoại (VNĐ)</label><input class="form-control" type="number" id="set-phone-allow"></div>
+            <div class="form-group"><label class="form-label">Hệ số OT</label><input class="form-control" type="number" step="0.1" id="set-ot"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">BHXH NV (%)</label><input class="form-control" type="number" step="0.1" id="set-bhxh"></div>
+            <div class="form-group"><label class="form-label">BHYT NV (%)</label><input class="form-control" type="number" step="0.1" id="set-bhyt"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">BHTN NV (%)</label><input class="form-control" type="number" step="0.1" id="set-bhtn"></div>
+            <div class="form-group"><label class="form-label">Giảm trừ bản thân (VNĐ)</label><input class="form-control" type="number" id="set-personal-relief"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">Số công chuẩn / tháng</label><input class="form-control" type="number" id="set-standard-days"></div>
+            <div class="form-group"><label class="form-label">Phạt đi muộn (VNĐ/lần)</label><input class="form-control" type="number" id="set-late-penalty"></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary" data-roles="admin,accountant" onclick="saveSettings()">💾 Lưu cấu hình</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px" data-roles="admin">
+      <div class="card-header"><div class="card-title">Tài khoản & phân quyền</div><span style="font-size:11px;color:var(--text-muted)">Chỉ Admin xem được</span></div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Tài khoản</th><th>Họ tên</th><th>Vai trò</th><th>Phạm vi</th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+<!-- PAGES -->
+  </div>
+</div>
+</div>
+<!-- ===================== EMPLOYEE MODAL =====================
+     Form thêm/sửa nhân viên. Field quan trọng nhất ở bản mới là #f-shift:
+     select multiple để lưu nhiều ca qua bảng employeeShifts. ===================== -->
+<div class="modal-overlay" id="emp-modal" onclick="closeModalOnOverlay(event,'emp-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">👤 Thêm nhân viên mới</div>
+      <button class="modal-close" onclick="closeModal('emp-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-edit-id">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Họ và tên *</label><input class="form-control" id="f-name" placeholder="Nguyễn Văn A"></div>
+        <div class="form-group"><label class="form-label">Mã nhân viên *</label><input class="form-control" id="f-id" placeholder="NV026"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="f-email" type="email"></div>
+        <div class="form-group"><label class="form-label">Điện thoại</label><input class="form-control" id="f-phone"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Phòng ban *</label>
+          <select class="form-control" id="f-dept"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Chức vụ</label><input class="form-control" id="f-pos" placeholder="Developer"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Ngày vào làm</label><input class="form-control" id="f-joined" type="date"></div>
+        <div class="form-group"><label class="form-label">Lương cơ bản (VNĐ) *</label><input class="form-control" id="f-salary" type="number" placeholder="15000000" min="1000000"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Ca làm việc *</label>
+          <!-- multiple + size=4 cho phép chọn nhiều option cùng lúc.
+               app.js đọc bằng selectValues() và lưu qua setEmpShiftCodes(). -->
+          <select class="form-control multi-select" id="f-shift" multiple size="4"></select>
+          <div class="form-help">Giữ Ctrl/⌘ để chọn nhiều ca. Dữ liệu được lưu trong bảng quan hệ <strong>employeeShifts</strong>, không lưu trực tiếp vào hồ sơ nhân viên.</div>
+        </div>
+        <div class="form-group"><label class="form-label">Trạng thái</label>
+          <select class="form-control" id="f-status">
+            <option value="active">Đang làm việc</option><option value="leave">Nghỉ phép</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Điểm KPI (0–100) — <span style="color:var(--text-muted);font-weight:400">điểm tổng hợp kỳ gần nhất, có thể chấm chi tiết ở trang KPI</span></label>
+        <input class="form-control" id="f-kpi" type="number" min="0" max="100" placeholder="85">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('emp-modal')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">✓ Lưu & Cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CHECK-IN MODAL =====================
+     Tạo/cập nhật một record công thủ công cho một ngày + nhân viên + ca.
+     #ci-preview giúp xem trước trạng thái trước khi lưu. ===================== -->
+<div class="modal-overlay" id="checkin-modal" onclick="closeModalOnOverlay(event,'checkin-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✅ Chấm công thủ công</div>
+      <button class="modal-close" onclick="closeModal('checkin-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Nhân viên *</label><select class="form-control" id="ci-emp" onchange="fillCheckinShiftSelect()"></select></div>
+        <div class="form-group"><label class="form-label">Ngày *</label><input class="form-control" id="ci-date" type="date" onchange="toggleCheckinType()"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Ca áp dụng *</label><select class="form-control" id="ci-shift" onchange="toggleCheckinType()"></select></div>
+        <div class="form-group"><label class="form-label">Loại</label>
+          <select class="form-control" id="ci-type" onchange="toggleCheckinType()">
+            <option value="work">Đi làm (tính theo giờ vào/ra)</option>
+            <option value="leave">Nghỉ phép</option>
+            <option value="absent">Vắng không phép</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Giờ vào</label><input class="form-control" id="ci-in" type="time" value="08:00" oninput="toggleCheckinType()"></div>
+        <div class="form-group"><label class="form-label">Giờ ra</label><input class="form-control" id="ci-out" type="time" value="17:00" oninput="toggleCheckinType()"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Ghi chú</label><input class="form-control" id="ci-note" placeholder="Lý do..."></div>
+      <div id="ci-preview" class="ci-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('checkin-modal')">Hủy</button>
+      <button class="btn btn-success" onclick="saveCheckin()">✓ Lưu chấm công</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ATTENDANCE DETAIL MODAL =====================
+     Modal chỉ có body rỗng. Nội dung được render động bởi openAttendanceDetail()
+     để hiển thị ca, giờ chuẩn, giờ thực tế, số phút đi muộn/về sớm. ===================== -->
+<div class="modal-overlay" id="att-detail-modal" onclick="closeModalOnOverlay(event,'att-detail-modal')">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <div class="modal-title">🧾 Chi tiết bản ghi công</div>
+      <button class="modal-close" onclick="closeModal('att-detail-modal')">×</button>
+    </div>
+    <div class="modal-body" id="att-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('att-detail-modal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DEPARTMENT MODAL ===================== -->
+<div class="modal-overlay" id="dept-modal" onclick="closeModalOnOverlay(event,'dept-modal')">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="dept-modal-title">🏢 Thêm phòng ban</div>
+      <button class="modal-close" onclick="closeModal('dept-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="d-edit-name">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Mã phòng ban *</label><input class="form-control" id="d-code" placeholder="KT"></div>
+        <div class="form-group"><label class="form-label">Tên phòng ban *</label><input class="form-control" id="d-name" placeholder="Kỹ thuật"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Trưởng phòng</label><select class="form-control" id="d-head"></select></div>
+      <div class="form-group"><label class="form-label">Mô tả</label><input class="form-control" id="d-desc" placeholder="Mô tả chức năng phòng ban"></div>
+      <div class="form-group"><label class="form-label">Màu hiển thị</label><input class="form-control" id="d-color" type="color" value="#3b82f6" style="height:42px;padding:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('dept-modal')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveDept()">✓ Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SHIFT MODAL =====================
+     Form CRUD danh mục ca. Mã ca là khóa liên kết với employeeShifts và attendance. ===================== -->
+<div class="modal-overlay" id="shift-modal" onclick="closeModalOnOverlay(event,'shift-modal')">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="shift-modal-title">📅 Thêm ca làm việc</div>
+      <button class="modal-close" onclick="closeModal('shift-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="s-edit-name">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Mã ca *</label><input class="form-control" id="s-code" placeholder="HC"></div>
+        <div class="form-group"><label class="form-label">Tên ca *</label><input class="form-control" id="s-name" placeholder="Hành chính"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Giờ vào *</label><input class="form-control" id="s-start" type="time" value="08:00"></div>
+        <div class="form-group"><label class="form-label">Giờ ra *</label><input class="form-control" id="s-end" type="time" value="17:00"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Cho phép muộn (phút)</label><input class="form-control" id="s-grace" type="number" value="10"></div>
+        <div class="form-group"><label class="form-label">Hệ số OT</label><input class="form-control" id="s-ot" type="number" step="0.1" value="1.5"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('shift-modal')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveShift()">✓ Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== KPI EVAL MODAL ===================== -->
+<div class="modal-overlay" id="kpi-modal" onclick="closeModalOnOverlay(event,'kpi-modal')">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="kpi-modal-title">🎯 Đánh giá KPI</div>
+      <button class="modal-close" onclick="closeModal('kpi-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="k-emp-id">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Nhập điểm từng tiêu chí (0–100). KPI tổng = tổng có trọng số.</p>
+      <div id="k-criteria"></div>
+      <div class="kpi-total-box">KPI tổng hợp: <strong id="k-total">0</strong>/100</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('kpi-modal')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveKpi()">✓ Lưu đánh giá</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAYSLIP MODAL ===================== -->
+<div class="modal-overlay" id="payslip-modal" onclick="closeModalOnOverlay(event,'payslip-modal')">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title">📄 Phiếu lương</div>
+      <button class="modal-close" onclick="closeModal('payslip-modal')">×</button>
+    </div>
+    <div class="modal-body" id="payslip-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('payslip-modal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- app.js đặt cuối body để DOM đã tồn tại trước khi init() chạy. -->
+<script src="app.js"></script>
+</body>
+</html>

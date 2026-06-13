@@ -1,0 +1,1292 @@
+
+:root {
+  --primary: #1a56db;
+  --primary-dark: #1340a8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --sidebar-bg: #0f172a;
+  --sidebar-width: 240px;
+  --header-h: 60px;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 4px 12px rgba(0, 0, 0, .04);
+}
+
+/* RESET
+   Reset nhẹ để mọi trình duyệt hiển thị đồng nhất hơn.
+   box-sizing:border-box giúp width/height bao gồm cả padding + border. */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* SIDEBAR
+   Thanh menu cố định bên trái. Width lấy từ --sidebar-width để #main canh lề tương ứng. */
+#sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+
+.sidebar-logo .logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.3px;
+}
+
+.sidebar-logo .logo-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.nav-section {
+  padding: 12px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  margin: 1px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 13.5px;
+  color: #94a3b8;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #e2e8f0;
+}
+
+.nav-item.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.nav-item .icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-item .nbadge {
+  margin-left: auto;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+}
+
+.user-name {
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* MAIN CONTENT
+   Khu vực nội dung chính. margin-left khớp sidebar fixed, header sticky để luôn thấy tiêu đề. */
+#main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  height: var(--header-h);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.header-search {
+  flex: 1;
+  max-width: 340px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+
+.header-search input {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  outline: none;
+  flex: 1;
+  color: var(--text);
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+/* BUTTONS
+   Nhóm nút mô phỏng Bootstrap: .btn là base, .btn-primary/.btn-outline/.btn-success là variant. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all .15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: var(--bg);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+
+.notif-btn {
+  position: relative;
+  padding: 7px 10px;
+}
+
+.notif-dot {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--danger);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* PAGE CONTENT
+   SPA dùng nhiều .page, chỉ page có class .active mới hiển thị. */
+#page-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.page {
+  display: none;
+  animation: fadeIn .2s;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* CARDS
+   Component khung nội dung dùng lại ở dashboard, bảng, biểu đồ, form. */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* STATS
+   Grid thống kê đầu trang. Có responsive ở cuối file để tự xuống 2 cột/1 cột. */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stat-change {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.stat-change.up {
+  color: var(--success);
+}
+
+.stat-change.down {
+  color: var(--danger);
+}
+
+/* GRIDS
+   Helper layout cấp component, khác utility layer vì dùng trong nhiều block lớn của app. */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* TABLES
+   Bọc table trong .table-wrapper để bảng dài có thể scroll ngang trên màn nhỏ. */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--bg);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+.avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* BADGES
+   Badge trạng thái: active/leave/late/KPI. Màu được đặt theo semantic status. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-warning {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-gray {
+  background: var(--bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* FORMS
+   Input/select dùng chung. focus state có box-shadow nhẹ như Bootstrap. */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.form-control {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, .1);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* PROGRESS BAR */
+.progress {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .5s;
+}
+
+/* MODAL
+   Modal dùng overlay fixed. Class .show bật opacity + pointer-events để mở/đóng. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--card);
+  border-radius: 12px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+  transform: scale(.95);
+  transition: transform .2s;
+}
+
+.modal-overlay.show .modal {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background: var(--bg);
+}
+
+.modal-body {
+  padding: 20px 24px;
+}
+
+.modal-footer {
+  padding: 14px 24px 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+
+/* CHARTS
+   Chart vẽ bằng div/SVG từ app.js, CSS chỉ chịu trách nhiệm layout và animation. */
+.bar-chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: height .5s, opacity .2s;
+  cursor: pointer;
+  min-height: 4px;
+}
+
+.bar:hover {
+  opacity: .75;
+}
+
+.bar-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.bar-val {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.donut-legend {
+  flex: 1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+  font-size: 13px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* KPI
+   Thanh KPI ngang, render bằng app.js dựa trên điểm từng tiêu chí. */
+.kpi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.kpi-name {
+  min-width: 120px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.kpi-bar-wrap {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.kpi-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .5s;
+}
+
+.kpi-val {
+  min-width: 38px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* TABS
+   Tabs chỉ đổi class active, không dùng thư viện JS ngoài. */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+
+.tab:hover {
+  color: var(--primary);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/*  PAGE HEADER */
+.page-header {
+  margin-bottom: 22px;
+}
+
+.page-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.page-header p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* EMPLOYEE CARDS
+   Layout card nhân viên dùng auto-fill để tự scale theo độ rộng màn hình. */
+.emp-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+}
+
+.emp-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s;
+  cursor: pointer;
+}
+
+.emp-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .1);
+}
+
+.emp-card .av {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.emp-card .ename {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.emp-card .epos {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 2px 0 6px;
+}
+
+/* ============================================================
+   ===== BỔ SUNG: login, phân quyền, các component mới =====
+   ============================================================ */
+
+/* ---------- LOGIN ---------- */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 32px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+}
+.login-logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  letter-spacing: -.5px;
+}
+.login-sub {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  margin: 4px 0 22px;
+}
+.login-error {
+  color: var(--danger);
+  font-size: 13px;
+  min-height: 18px;
+  margin: 4px 0;
+}
+.login-hint {
+  margin-top: 18px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ---------- LAYOUT khi đăng nhập ---------- */
+#app-shell { display: flex; width: 100%; }
+#main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- SIDEBAR bottom + logout ---------- */
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.user-info .user-name { color: #fff; font-size: 13.5px; font-weight: 600; }
+.user-info .user-role { color: #94a3b8; font-size: 11.5px; }
+.logout-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 12.5px;
+  padding: 7px;
+  color: #fff;
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .05);
+}
+.logout-btn:hover { background: rgba(255, 255, 255, .12); }
+
+/* ---------- emp-cell / avatar dùng lại ---------- */
+.emp-cell { display: flex; align-items: center; gap: 10px; }
+.emp-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.emp-name { font-size: 13.5px; font-weight: 600; }
+.emp-sub { font-size: 11.5px; color: var(--text-muted); }
+
+/* ---------- dept-tag ---------- */
+.dept-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- icon-btn ---------- */
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px 5px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.icon-btn:hover { background: var(--bg); }
+
+/* ---------- DEPARTMENTS cards ---------- */
+.dept-detail-card { padding: 0; }
+.dept-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.dept-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.ds-num { font-size: 18px; font-weight: 700; color: var(--text); }
+.ds-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---------- emp card (tab thẻ) ---------- */
+.emp-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 12px;
+}
+.emp-card-body { padding: 0 16px 16px; }
+.ec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+.ec-row span:first-child { color: var(--text-muted); }
+
+/* ---------- KPI bars ---------- */
+.kpi-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.kpi-bar-lbl { width: 90px; font-size: 13px; flex-shrink: 0; }
+.kpi-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.kpi-bar-fill { height: 100%; border-radius: 6px; transition: width .4s; }
+.kpi-bar-val { width: 42px; text-align: right; font-weight: 600; font-size: 13px; }
+
+/* ---------- Top 3 ---------- */
+.top3-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.top3-row:last-child { border-bottom: none; }
+.top3-medal { font-size: 22px; width: 28px; text-align: center; }
+.top3-score {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* ---------- KPI eval modal ---------- */
+.kpi-total-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+.kpi-total-box strong { color: var(--primary); font-size: 20px; }
+
+/* ---------- check-in preview ---------- */
+.ci-preview {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ---------- payslip ---------- */
+.ps-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13.5px;
+}
+.ps-row span:first-child { color: var(--text-muted); }
+.ps-hr { border: none; border-top: 1px dashed var(--border); margin: 8px 0; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 880px) {
+  #sidebar { transform: translateX(-100%); }
+  #main { margin-left: 0; }
+}
+
+.bar-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.bar-value {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+/* ===== FIX BAR CHART HEIGHT ===== */
+.bar-chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 8px 24px 12px;
+  height: 150px;
+}
+
+.bar-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  min-width: 44px;
+}
+
+.bar-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  text-align: center;
+}
+
+.bar {
+  width: 100%;
+  max-width: 130px;
+  min-height: 8px;
+  border-radius: 5px 5px 0 0;
+  transition: height .35s ease, opacity .2s;
+  cursor: pointer;
+}
+
+.bar:hover {
+  opacity: .75;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+/* ===================================================================
+   Bootstrap/Tailwind-inspired utility layer
+
+   Ghi chú đọc code:
+   - Đây là lớp utility tự viết, không phải Bootstrap/Tailwind thật.
+   - Mục tiêu là dùng lại các class quen thuộc để giảm inline style.
+   - Đặt cuối file để có thể override component phía trên khi cần.
+   - Giữ UI hiện tại nhưng bổ sung nhóm utility quen thuộc: flex, gap,
+     spacing, rounded, shadow, text, responsive helpers.
+   - Không phụ thuộc CDN, tránh xung đột class với CSS sẵn có.
+=================================================================== */
+.d-flex, .flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+.grid { display: grid !important; }
+.items-center, .align-items-center { align-items: center !important; }
+.items-start { align-items: flex-start !important; }
+.justify-between, .justify-content-between { justify-content: space-between !important; }
+.justify-end, .justify-content-end { justify-content: flex-end !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-1 { flex: 1 1 0% !important; }
+.gap-1 { gap: .25rem !important; }
+.gap-2 { gap: .5rem !important; }
+.gap-3 { gap: .75rem !important; }
+.gap-4 { gap: 1rem !important; }
+.mt-1 { margin-top: .25rem !important; }
+.mt-2 { margin-top: .5rem !important; }
+.mt-3 { margin-top: .75rem !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: .5rem !important; }
+.p-2 { padding: .5rem !important; }
+.p-3 { padding: .75rem !important; }
+.p-4 { padding: 1rem !important; }
+.rounded, .rounded-md { border-radius: .5rem !important; }
+.rounded-lg { border-radius: .75rem !important; }
+.shadow-sm { box-shadow: var(--shadow) !important; }
+.border { border: 1px solid var(--border) !important; }
+.text-muted, .text-slate-500 { color: var(--text-muted) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger { color: var(--danger) !important; }
+.bg-white { background: var(--card) !important; }
+.bg-slate-50 { background: var(--bg) !important; }
+.w-100 { width: 100% !important; }
+.text-center { text-align: center !important; }
+.whitespace-nowrap { white-space: nowrap !important; }
+
+/* Buttons: Bootstrap-like compact size
+   .btn-xs dùng cho action nhỏ trong bảng như nút Chi tiết/Sửa/Xóa. */
+.btn-xs {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  gap: 4px;
+}
+
+/* Multi-select ca làm việc
+   Dùng cho field chọn nhiều ca của nhân viên. Native <select multiple> được style lại
+   để người dùng nhìn rõ option nào đang được chọn. */
+.multi-select {
+  min-height: 118px;
+  padding: 6px;
+}
+.multi-select option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin: 2px 0;
+}
+.multi-select option:checked {
+  background: linear-gradient(0deg, rgba(26,86,219,.16), rgba(26,86,219,.16));
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.form-help {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Shift badges
+   Hiển thị danh sách ca đã gán cho nhân viên trong bảng/card. */
+.shift-chip-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 240px;
+}
+.shift-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  white-space: nowrap;
+}
+
+/* Attendance detail
+   Nhóm style cho cột mô tả đi muộn/về sớm và modal chi tiết record công. */
+.att-sub,
+.att-reason {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.att-reason {
+  color: #92400e;
+}
+.detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  margin-bottom: 14px;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.detail-grid > div {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+}
+.detail-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  margin-bottom: 4px;
+}
+.detail-grid strong {
+  font-size: 13.5px;
+}
+
+/* Bảng có nhiều ca: giữ nội dung dễ đọc trên màn nhỏ
+   Vì một nhân viên có thể có nhiều dòng công trong ngày, table cần giữ vertical-align ổn định. */
+.table-wrapper table td,
+.table-wrapper table th {
+  vertical-align: middle;
+}
+
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  #page-content { padding: 16px; }
+  header { padding: 0 16px; flex-wrap: wrap; height: auto; min-height: var(--header-h); padding-top: 10px; padding-bottom: 10px; }
+  .header-search { order: 3; width: 100%; max-width: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .modal { width: calc(100vw - 24px) !important; }
+}
