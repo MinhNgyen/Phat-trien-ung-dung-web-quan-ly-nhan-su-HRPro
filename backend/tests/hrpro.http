@@ -1,0 +1,101 @@
+### HRPro API - file test cho VS Code REST Client / Thunder Client
+@host = http://localhost:5000/api
+@token = {{login.response.body.data.token}}
+
+### Health check
+GET {{host}}/health
+
+### Dang nhap
+# @name login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "admin123" }
+
+### Thong tin tai khoan
+GET {{host}}/auth/me
+Authorization: Bearer {{token}}
+
+### Danh sach nhan vien
+GET {{host}}/employees
+Authorization: Bearer {{token}}
+
+### Them nhan vien
+POST {{host}}/employees
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "employeeCode": "NV100",
+  "name": "Nguyen Van Test",
+  "email": "test@hrpro.vn",
+  "phone": "0912345678",
+  "position": "Developer",
+  "salary": 15000000,
+  "joinedAt": "2026-01-15",
+  "status": "ACTIVE",
+  "departmentId": 1
+}
+
+### Sua nhan vien
+PUT {{host}}/employees/26
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "salary": 17000000, "position": "Senior Developer" }
+
+### Xoa nhan vien
+DELETE {{host}}/employees/26
+Authorization: Bearer {{token}}
+
+### Phong ban
+GET {{host}}/departments
+Authorization: Bearer {{token}}
+
+### Ca lam viec
+GET {{host}}/shifts
+Authorization: Bearer {{token}}
+
+### Cham cong - tao
+POST {{host}}/attendance
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "employeeId": 1, "shiftId": 1, "date": "2026-09-21", "checkIn": "08:10", "checkOut": "17:00" }
+
+### Cham cong - danh sach theo thang
+GET {{host}}/attendance?month=2026-09
+Authorization: Bearer {{token}}
+
+### Tinh luong thang
+POST {{host}}/payroll/calculate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "month": "2026-09" }
+
+### Bang luong theo thang
+GET {{host}}/payroll/2026-09
+Authorization: Bearer {{token}}
+
+### Khoa bang luong
+POST {{host}}/payroll/lock
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "month": "2026-09" }
+
+### Them KPI
+POST {{host}}/kpi
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "employeeId": 1, "period": "2026-08", "sales": 85, "attendance": 95, "task": 88, "deadline": 90, "quality": 92 }
+
+### Danh sach KPI
+GET {{host}}/kpi
+Authorization: Bearer {{token}}
+
+### Dashboard
+GET {{host}}/reports/dashboard
+Authorization: Bearer {{token}}

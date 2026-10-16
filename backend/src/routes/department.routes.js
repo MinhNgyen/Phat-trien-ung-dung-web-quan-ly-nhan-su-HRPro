@@ -1,0 +1,17 @@
+const router = require('express').Router();
+const c = require('../controllers/department.controller');
+const { authenticate } = require('../middlewares/auth.middleware');
+const { authorize } = require('../middlewares/role.middleware');
+const { validate } = require('../middlewares/validate.middleware');
+const v = require('../validators/employee.validator');
+
+router.use(authenticate);
+
+router.get('/', c.getAll); // moi role deu xem duoc danh sach phong ban
+router.get('/:id', c.getById);
+router.get('/:id/employees', authorize('ADMIN', 'HR', 'ACCOUNTANT', 'MANAGER'), c.getEmployees);
+router.post('/', authorize('ADMIN', 'HR'), validate(v.departmentSchema), c.create);
+router.put('/:id', authorize('ADMIN', 'HR'), validate(v.updateDepartmentSchema), c.update);
+router.delete('/:id', authorize('ADMIN', 'HR'), c.remove);
+
+module.exports = router;

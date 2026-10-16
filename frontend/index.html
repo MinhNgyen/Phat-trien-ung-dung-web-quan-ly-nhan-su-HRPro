@@ -9,8 +9,7 @@
 </head>
 <body>
 <!-- ===================== LOGIN =====================
-     Màn đăng nhập demo. Tài khoản được kiểm tra trong DB.users ở app.js,
-     không có backend hoặc API xác thực thật. ===================== -->
+     Màn đăng nhập: gọi POST /api/auth/login (js/auth.js), nhận JWT từ backend. ===================== -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">⚡ HRPro</div>
@@ -28,7 +27,7 @@
 
 <!-- ===================== APP SHELL =====================
      Khung chính sau đăng nhập: sidebar + header + page-content.
-     app.js sẽ bật/tắt #login-screen và #app-shell tùy trạng thái SESSION. ===================== -->
+     js/auth.js bật/tắt #login-screen và #app-shell tùy trạng thái đăng nhập. ===================== -->
 <div id="app-shell" style="display:none;width:100%">
 
 <!-- Sidebar dùng data-page để navigate() biết cần mở màn nào.
@@ -78,7 +77,7 @@
   <div class="page active" id="page-dashboard">
     <div class="page-header">
       <h1>Tổng quan hệ thống</h1>
-      <p>Tất cả số liệu cập nhật tự động khi chỉnh sửa dữ liệu — lưu cố định trên trình duyệt (localStorage)</p>
+      <p>Số liệu lấy trực tiếp từ cơ sở dữ liệu MySQL qua API, luôn là dữ liệu mới nhất</p>
     </div>
     <div class="stats-grid">
       <div class="stat-card">
@@ -141,8 +140,7 @@
   </div>
 
   <!-- EMPLOYEES
-       Quản lý nhân viên. Cột ca làm lấy từ bảng employeeShifts trong app.js,
-       không lấy trực tiếp từ employee.shift nữa. -->
+       Quản lý nhân viên. Cột ca làm lấy từ API (employee.shifts). -->
   <div class="page" id="page-employees">
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
       <div><h1>Quản lý Nhân viên</h1><p id="emp-count-lbl">25 nhân viên</p></div>
@@ -162,7 +160,7 @@
             <input class="form-control" style="width:200px" id="emp-search" placeholder="🔍 Tìm tên / mã NV..." oninput="renderEmployeeTable()">
             <select class="form-control" style="width:160px" id="emp-dept-filter" onchange="renderEmployeeTable()"><option value="">Tất cả phòng ban</option></select>
             <select class="form-control" style="width:150px" id="emp-status-filter" onchange="renderEmployeeTable()">
-              <option value="">Tất cả trạng thái</option><option value="active">Đang làm</option><option value="leave">Nghỉ phép</option>
+              <option value="">Tất cả trạng thái</option><option value="ACTIVE">Đang làm</option><option value="LEAVE">Nghỉ phép</option><option value="INACTIVE">Đã nghỉ việc</option>
             </select>
           </div>
         </div>
@@ -188,7 +186,7 @@
   </div>
 
   <!-- SHIFTS
-       Danh mục ca làm. Khi xóa/sửa ca, app.js sẽ cập nhật các link liên quan. -->
+       Danh mục ca làm. Khi xóa ca, backend tự gỡ phân ca liên quan. -->
   <div class="page" id="page-shifts">
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
       <div><h1>Ca làm việc</h1><p>Quản lý ca: giờ vào/ra, quy định đi muộn, hệ số OT</p></div>
@@ -244,6 +242,7 @@
       <div><h1>Tính lương</h1><p id="salary-period-lbl">Bảng lương theo kỳ — tính từ bảng công thật + cấu hình ở trang Cài đặt</p></div>
       <div style="display:flex;gap:10px;align-items:center">
         <input class="form-control" type="month" id="sal-month" style="width:160px" onchange="renderSalary()">
+        <button class="btn btn-primary" data-roles="admin,accountant" onclick="calculatePayrollNow()">🧮 Tính lương kỳ này</button>
         <button class="btn btn-outline" onclick="exportSalaryCSV()">📄 Xuất bảng lương</button>
       </div>
     </div>
@@ -272,8 +271,8 @@
       <div class="table-wrapper">
         <table>
           <thead><tr>
-            <th>Nhân viên</th><th>Phòng ban</th><th>Lương CB</th><th>Công thực tế</th>
-            <th>Phụ cấp</th><th>OT</th><th>Trừ muộn/vắng</th><th>BH (10.5%)</th><th>Thuế TNCN</th><th>Thưởng/Phạt</th><th>Thực nhận</th><th></th>
+            <th>Nhân viên</th><th>Phòng ban</th><th>Lương theo công</th><th>Công thực tế</th>
+            <th>Phụ cấp</th><th>OT</th><th>Khấu trừ (BH + phạt)</th><th>Lương trước thuế</th><th>Thuế TNCN</th><th>Thực nhận</th><th></th>
           </tr></thead>
           <tbody id="salary-tbody"></tbody>
         </table>
@@ -436,19 +435,15 @@
       <div class="form-grid-2">
         <div class="form-group"><label class="form-label">Ca làm việc *</label>
           <!-- multiple + size=4 cho phép chọn nhiều option cùng lúc.
-               app.js đọc bằng selectValues() và lưu qua setEmpShiftCodes(). -->
+               employees.js đọc bằng selectValues() rồi đồng bộ qua API phân ca. -->
           <select class="form-control multi-select" id="f-shift" multiple size="4"></select>
-          <div class="form-help">Giữ Ctrl/⌘ để chọn nhiều ca. Dữ liệu được lưu trong bảng quan hệ <strong>employeeShifts</strong>, không lưu trực tiếp vào hồ sơ nhân viên.</div>
+          <div class="form-help">Giữ Ctrl/⌘ để chọn nhiều ca. Dữ liệu lưu trong bảng quan hệ <strong>employee_shifts</strong> trên MySQL.</div>
         </div>
         <div class="form-group"><label class="form-label">Trạng thái</label>
           <select class="form-control" id="f-status">
-            <option value="active">Đang làm việc</option><option value="leave">Nghỉ phép</option>
+            <option value="ACTIVE">Đang làm việc</option><option value="LEAVE">Nghỉ phép</option><option value="INACTIVE">Đã nghỉ việc</option>
           </select>
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Điểm KPI (0–100) — <span style="color:var(--text-muted);font-weight:400">điểm tổng hợp kỳ gần nhất, có thể chấm chi tiết ở trang KPI</span></label>
-        <input class="form-control" id="f-kpi" type="number" min="0" max="100" placeholder="85">
       </div>
     </div>
     <div class="modal-footer">
@@ -600,7 +595,18 @@
   </div>
 </div>
 
-<!-- app.js đặt cuối body để DOM đã tồn tại trước khi init() chạy. -->
-<script src="app.js"></script>
+<!-- Các file js/*.js đặt cuối body để DOM đã tồn tại khi chúng chạy. Mỗi file là một module (core, auth, employees, ...). -->
+<script src="api.js"></script>
+<script src="js/core.js"></script>
+<script src="js/employees.js"></script>
+<script src="js/departments.js"></script>
+<script src="js/shifts.js"></script>
+<script src="js/attendance.js"></script>
+<script src="js/kpi.js"></script>
+<script src="js/payroll.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/dashboard.js"></script>
+<!-- auth.js đặt CUỐI: nó khởi động ứng dụng khi trang tải xong, lúc đó mọi module khác phải sẵn sàng -->
+<script src="js/auth.js"></script>
 </body>
 </html>

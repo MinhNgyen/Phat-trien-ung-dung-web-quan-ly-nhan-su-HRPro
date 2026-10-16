@@ -1,0 +1,227 @@
+// HRPro - Prisma schema (MySQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  HR
+  ACCOUNTANT
+  MANAGER
+  EMPLOYEE
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  LEAVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  LEAVE
+}
+
+enum AttendanceType {
+  NORMAL
+  OVERTIME
+  REMOTE
+  BUSINESS_TRIP
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255) // luon luu dang hash bcrypt
+  fullName  String?  @map("full_name") @db.VarChar(120)
+  role      Role     @default(EMPLOYEE)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  employee    Employee?
+  salaryLocks SalaryLock[]
+
+  @@map("users")
+}
+
+model Department {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(20)
+  name        String   @db.VarChar(120)
+  description String?  @db.Text
+  head        String?  @db.VarChar(120)
+  color       String?  @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  employees Employee[]
+
+  @@map("departments")
+}
+
+model Employee {
+  id           Int            @id @default(autoincrement())
+  employeeCode String         @unique @map("employee_code") @db.VarChar(20)
+  name         String         @db.VarChar(120)
+  email        String         @unique @db.VarChar(150)
+  phone        String?        @db.VarChar(20)
+  position     String?        @db.VarChar(120)
+  salary       Decimal        @default(0) @db.Decimal(15, 2)
+  joinedAt     DateTime       @map("joined_at")
+  status       EmployeeStatus @default(ACTIVE)
+  departmentId Int?           @map("department_id")
+  userId       Int?           @unique @map("user_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  department     Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  employeeShifts EmployeeShift[]
+  attendances    Attendance[]
+  payrolls       Payroll[]
+  kpis           Kpi[]
+
+  @@index([departmentId])
+  @@map("employees")
+}
+
+model Shift {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(20)
+  name        String   @db.VarChar(120)
+  startTime   String   @map("start_time") @db.VarChar(5) // "08:00"
+  endTime     String   @map("end_time") @db.VarChar(5) // "17:00"
+  graceMinutes Int     @default(10) @map("grace_minutes")
+  overtimeRate Decimal @default(1.5) @map("overtime_rate") @db.Decimal(3, 1)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  employeeShifts EmployeeShift[]
+  attendances    Attendance[]
+
+  @@map("shifts")
+}
+
+model EmployeeShift {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @map("employee_id")
+  shiftId    Int      @map("shift_id")
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, shiftId])
+  @@map("employee_shifts")
+}
+
+model Attendance {
+  id          Int              @id @default(autoincrement())
+  employeeId  Int              @map("employee_id")
+  shiftId     Int?             @map("shift_id")
+  date        DateTime         @db.Date
+  checkIn     String?          @map("check_in") @db.VarChar(5)
+  checkOut    String?          @map("check_out") @db.VarChar(5)
+  workHours   Decimal          @default(0) @map("work_hours") @db.Decimal(5, 2)
+  lateMinutes Int              @default(0) @map("late_minutes")
+  status      AttendanceStatus @default(PRESENT)
+  type        AttendanceType   @default(NORMAL)
+  note        String?          @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, shiftId, date], name: "employee_shift_date")
+  @@index([date])
+  @@map("attendance")
+}
+
+model Payroll {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int      @map("employee_id")
+  month        String   @db.VarChar(7) // "2026-09"
+  baseSalary   Decimal  @default(0) @map("base_salary") @db.Decimal(15, 2)
+  workDays     Int      @default(0) @map("work_days")
+  standardDays Int      @default(26) @map("standard_days")
+  overtime     Decimal  @default(0) @db.Decimal(15, 2)
+  allowance    Decimal  @default(0) @db.Decimal(15, 2)
+  deduction    Decimal  @default(0) @db.Decimal(15, 2)
+  grossSalary  Decimal  @default(0) @map("gross_salary") @db.Decimal(15, 2)
+  tax          Decimal  @default(0) @db.Decimal(15, 2)
+  netSalary    Decimal  @default(0) @map("net_salary") @db.Decimal(15, 2)
+  note         String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month])
+  @@index([month])
+  @@map("payrolls")
+}
+
+model Kpi {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @map("employee_id")
+  period     String   @db.VarChar(7) // "2026-09"
+  sales      Int      @default(0)
+  attendance Int      @default(0)
+  task       Int      @default(0)
+  deadline   Int      @default(0)
+  quality    Int      @default(0)
+  total      Decimal  @default(0) @db.Decimal(6, 2)
+  evaluatedBy String? @map("evaluated_by") @db.VarChar(120)
+  note       String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, period])
+  @@map("kpis")
+}
+
+// Cấu hình lương toàn công ty — luôn chỉ có đúng 1 bản ghi (id = 1), kiểu singleton.
+// payroll.service.js đọc bảng này thay vì dùng hằng số cố định.
+model PayrollSetting {
+  id             Int      @id @default(1)
+  company        String?  @db.VarChar(200)
+  email          String?  @db.VarChar(150)
+  lunch          Decimal  @default(0) @db.Decimal(15, 2)       // phụ cấp ăn trưa / tháng
+  fuel           Decimal  @default(0) @db.Decimal(15, 2)       // phụ cấp xăng xe / tháng
+  phoneAllow     Decimal  @default(0) @map("phone_allow") @db.Decimal(15, 2) // phụ cấp điện thoại / tháng
+  ot             Decimal  @default(1.5) @db.Decimal(3, 1)      // hệ số OT mặc định
+  bhxh           Decimal  @default(8) @db.Decimal(4, 2)        // % BHXH nhân viên đóng
+  bhyt           Decimal  @default(1.5) @db.Decimal(4, 2)      // % BHYT nhân viên đóng
+  bhtn           Decimal  @default(1) @db.Decimal(4, 2)        // % BHTN nhân viên đóng
+  personalRelief Decimal  @default(11000000) @map("personal_relief") @db.Decimal(15, 2)
+  standardDays   Int      @default(26) @map("standard_days")
+  latePenalty    Decimal  @default(50000) @map("late_penalty") @db.Decimal(15, 2) // phạt mỗi LẦN đi muộn
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("payroll_settings")
+}
+
+model SalaryLock {
+  id       Int      @id @default(autoincrement())
+  month    String   @unique @db.VarChar(7)
+  isLocked Boolean  @default(true) @map("is_locked")
+  lockedBy Int?     @map("locked_by")
+  lockedAt DateTime @default(now()) @map("locked_at")
+
+  user User? @relation(fields: [lockedBy], references: [id], onDelete: SetNull)
+
+  @@map("salary_locks")
+}
