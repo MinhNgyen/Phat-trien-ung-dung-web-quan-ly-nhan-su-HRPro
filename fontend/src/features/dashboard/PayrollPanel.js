@@ -34,7 +34,6 @@ export default function PayrollPanel({ onChanged }) {
 
       <div className="steps">
         <div className={'step ' + (calculated ? 'done' : 'current')}><span className="dot">{calculated ? '✓' : '1'}</span>Tính lương</div>
-        <div className={'bar' + (calculated ? ' done' : '')} />
         <div className={'step ' + (snap.state === 'locked' ? 'done' : calculated ? 'current' : '')}><span className="dot">{snap.state === 'locked' ? '✓' : '2'}</span>Chốt lương</div>
         <span className={`badge ${STATE_BADGE[snap.state]}`}>{STATE_LABEL[snap.state]}</span>
       </div>

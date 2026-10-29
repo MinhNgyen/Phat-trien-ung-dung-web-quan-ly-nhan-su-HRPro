@@ -1,0 +1,144 @@
+HRPro — DANH MỤC CÔNG NGHỆ SỬ DỤNG
+====================================
+Cập nhật theo package.json, Prisma schema, Docker trong repo.
+Phiên bản ghi theo semver khai báo (^x.y.z = tối thiểu x.y.z).
+
+
+1. TỔNG QUAN KIẾN TRÚC
+----------------------
+Mô hình: Client–Server, REST API, tách frontend / backend.
+
+  Trình duyệt  →  Next.js (fontend/, cổng 3000)
+                      ↓  HTTP JSON + JWT
+               Express REST (backend/, cổng local 5001)
+                      ↓  Prisma ORM
+               MySQL 8 (utf8mb4), cổng Docker 3307
+
+
+2. NGÔN NGỮ VÀ MÔI TRƯỜNG
+-------------------------
+- JavaScript (ES module phía frontend, CommonJS phía backend)
+- Node.js  >= 18  (Docker image: node:20-alpine)
+- npm
+- HTML / CSS (không dùng TypeScript)
+
+
+3. FRONTEND  (thư mục fontend/)
+-------------------------------
+Framework & UI
+  Next.js          ^15.0.0     App Router, React Server/Client Components
+  React            ^19.0.0
+  react-dom        ^19.0.0
+  CSS thuần        src/app/globals.css (giao diện gốc)
+                   src/app/modern.css, overrides.css (lớp hiện đại)
+
+Gọi API
+  fetch (Web API)  src/api/client.js
+  JWT lưu localStorage, header Authorization: Bearer <token>
+
+Kiểm thử
+  Vitest           ^2.1.0      npm test  =  vitest run
+                               file: src/**/*.test.js  (hàm thuần *Utils.js)
+
+Chạy
+  next dev         http://localhost:3000
+  Biến môi trường  NEXT_PUBLIC_API_URL  (mặc định http://localhost:5001/api)
+
+
+4. BACKEND  (thư mục backend/)
+------------------------------
+HTTP & bảo mật
+  Express          ^4.21.1     REST, prefix /api
+  cors             ^2.8.5      CORS_ORIGIN
+  helmet           ^8.0.0      HTTP headers
+  morgan           ^1.10.0     log request (tắt khi NODE_ENV=test)
+  dotenv           ^16.4.5     file .env
+
+Xác thực & phân quyền
+  jsonwebtoken     ^9.0.2      JWT (JWT_SECRET, JWT_EXPIRES_IN)
+  bcryptjs         ^2.4.3      hash mật khẩu
+
+Validate
+  Zod              ^3.23.8     src/validators/*.js
+
+CSDL
+  Prisma           ^5.22.0     schema + migrate + seed
+  @prisma/client   ^5.22.0     PrismaClient
+  MySQL            8.0         provider = "mysql", charset utf8mb4
+
+Tài liệu API
+  swagger-jsdoc    ^6.2.8
+  swagger-ui-express ^5.0.1    http://localhost:5001/api-docs
+
+Dev / test
+  nodemon          ^3.1.7      npm run dev
+  Jest             ^29.7.0     npm test  =  jest --runInBand
+                               file: backend/src/**/*.test.js
+  supertest        ^7.0.0      (khai báo, dùng cho test HTTP nếu viết thêm)
+
+
+5. CƠ SỞ DỮ LIỆU (Prisma / MySQL)
+---------------------------------
+Bảng: users, employees, departments, shifts, employee_shifts,
+      attendance, tasks, kpis, payrolls, payroll_settings, salary_locks
+
+Enum: Role, EmployeeStatus, AttendanceStatus, AttendanceType, TaskStatus
+
+ORM: Prisma Client — truy vấn typed, migrate trong backend/prisma/migrations/
+
+
+6. TRIỂN KHAI / HẠ TẦNG
+-----------------------
+- Docker            image MySQL 8.0, backend node:20-alpine
+- Docker Compose    3.9     docker-compose.yml
+                    hrpro-mysql   host 3307 → container 3306
+                    hrpro-backend host 5000 (Docker) / local PORT=5001
+- Git / GitHub      https://github.com/MinhNgyen/Phat-trien-ung-dung-web-quan-ly-nhan-su-HRPro
+
+
+7. GIAO THỨC VÀ ĐỊNH DẠNG
+-------------------------
+- REST + JSON
+- JWT Bearer
+- OpenAPI / Swagger
+- CSV xuất báo cáo (frontend, lib/csv.js)
+- file .http (backend/tests/hrpro.http) cho VS Code REST Client
+
+
+8. KHÔNG DÙNG
+-------------
+- TypeScript
+- Redux / Zustand / React Query
+- UI kit (MUI, Ant Design, Tailwind)
+- Playwright  (đã gỡ; test UI không còn trong repo)
+- MongoDB / PostgreSQL
+
+
+9. BẢNG PHIÊN BẢN (khai báo trong package.json)
+-----------------------------------------------
+Frontend
+  next                 ^15.0.0
+  react / react-dom    ^19.0.0
+  vitest               ^2.1.0
+
+Backend
+  express              ^4.21.1
+  @prisma/client       ^5.22.0
+  prisma               ^5.22.0
+  bcryptjs             ^2.4.3
+  cors                 ^2.8.5
+  dotenv               ^16.4.5
+  helmet               ^8.0.0
+  jsonwebtoken         ^9.0.2
+  morgan               ^1.10.0
+  swagger-jsdoc        ^6.2.8
+  swagger-ui-express   ^5.0.1
+  zod                  ^3.23.8
+  jest                 ^29.7.0
+  nodemon              ^3.1.7
+  supertest            ^7.0.0
+
+Hạ tầng
+  Node.js              >= 18  (Docker: 20-alpine)
+  MySQL                8.0
+  Docker Compose       3.9

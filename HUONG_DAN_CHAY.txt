@@ -1,0 +1,246 @@
+HRPro — HƯỚNG DẪN CHẠY TOÀN BỘ DỰ ÁN
+====================================
+Áp dụng cho máy Windows / macOS / Linux.
+Thư mục gốc: hr-pro/
+  fontend/   giao diện Next.js  (cổng 3000)
+  backend/   REST API Express   (cổng local 5001)
+  MySQL 8    cơ sở dữ liệu      (Docker map cổng 3307)
+
+
+1. YÊU CẦU PHẦN MỀM
+-------------------
+- Node.js >= 18  (kiểm tra:  node -v)
+- npm            (kiểm tra:  npm -v)
+- Docker Desktop (để chạy MySQL; hoặc cài MySQL 8 sẵn trên máy)
+- Git (nếu clone repo)
+
+
+2. CỔNG MẶC ĐỊNH
+----------------
+  Frontend     http://localhost:3000
+  Backend API  http://localhost:5001
+  Swagger      http://localhost:5001/api-docs
+  MySQL        localhost:3307  (Docker)   hoặc  localhost:3306 (MySQL cài tay)
+
+Nếu chạy backend bằng Docker Compose thì API nằm ở cổng 5000
+(xem mục 5). Cách thường dùng khi dev là mục 4 (MySQL Docker + backend/frontend trên máy).
+
+
+3. LẦN ĐẦU — CÀI PACKAGE
+------------------------
+Mở terminal tại thư mục gốc hr-pro/ rồi chạy lần lượt:
+
+  cd backend
+  npm install
+
+  cd ../fontend
+  npm install
+
+
+4. CHẠY LOCAL (KHUYẾN NGHỊ KHI DEV)
+-----------------------------------
+Cần 3 tiến trình: MySQL, backend, frontend. Mở 3 cửa sổ terminal.
+
+--- 4.1. MySQL (Docker) ---
+
+Từ thư mục gốc hr-pro/:
+
+  docker compose up -d hrpro-mysql
+
+Đợi khoảng 10–20 giây cho MySQL sẵn sàng.
+Cổng host: 3307. User: root  /  Mật khẩu: rootpassword  /  Database: hrpro
+(Docker tự tạo database hrpro, utf8mb4.)
+
+Không dùng Docker? Tạo DB tay trong MySQL:
+
+  CREATE DATABASE hrpro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+--- 4.2. Backend ---
+
+  cd backend
+
+Nếu chưa có file .env:
+
+  copy .env.example .env          (Windows CMD)
+  cp .env.example .env            (Git Bash / macOS / Linux)
+
+Sửa backend/.env cho khớp MySQL Docker:
+
+  PORT=5001
+  DATABASE_URL="mysql://root:rootpassword@localhost:3307/hrpro"
+  JWT_SECRET="change_this_secret"
+  JWT_EXPIRES_IN="7d"
+  NODE_ENV="development"
+  CORS_ORIGIN="*"
+
+Nếu MySQL cài tay ở cổng 3306, đổi thành:
+
+  DATABASE_URL="mysql://root:MAT_KHAU_MYSQL@localhost:3306/hrpro"
+
+Tạo bảng rồi nạp dữ liệu mẫu (chỉ cần lần đầu, hoặc khi muốn reset mẫu):
+
+  npx prisma migrate dev
+  npm run seed
+
+Lệnh seed hơi lâu (tạo chấm công, đầu việc, tính KPI).
+CẢNH BÁO:  npm run seed  sẽ XÓA toàn bộ đầu việc rồi tạo lại.
+
+Chạy server:
+
+  npm run dev
+
+Kiểm tra: mở trình duyệt  http://localhost:5001/api/health
+Kết quả đúng:
+
+  {"success":true,"message":"HRPro Backend is running"}
+
+Swagger:  http://localhost:5001/api-docs
+
+
+--- 4.3. Frontend ---
+
+Cửa sổ terminal mới:
+
+  cd fontend
+
+File fontend/.env.local phải trỏ đúng backend local:
+
+  NEXT_PUBLIC_API_URL=http://localhost:5001/api
+
+Chạy:
+
+  npm run dev
+
+Mở:  http://localhost:3000  → trang đăng nhập.
+
+
+5. CHẠY BACKEND BẰNG DOCKER (TUỲ CHỌN)
+--------------------------------------
+Từ thư mục gốc:
+
+  docker compose up -d --build
+  docker compose exec hrpro-backend npm run seed
+
+  API:     http://localhost:5000
+  Swagger: http://localhost:5000/api-docs
+  MySQL:   localhost:3307
+
+Frontend vẫn chạy trên máy:
+
+  cd fontend
+  (sửa .env.local)  NEXT_PUBLIC_API_URL=http://localhost:5000/api
+  npm run dev
+
+Trong container, DATABASE_URL dùng hostname hrpro-mysql — không dùng localhost.
+
+
+6. TÀI KHOẢN MẪU  (sau khi seed)
+--------------------------------
+Mật khẩu được hash bcrypt và RESET mỗi lần chạy  npm run seed.
+
+  Username       Password        Role          Nhân viên
+  -------------  --------------  ------------  --------------------------------
+  admin          admin123        ADMIN         (không gắn NV)
+  hr123          hr123456        HR            NV016 Phạm Thu Hà
+  hr2            hr123456        HR            NV017 Võ Thị Kim
+  ketoan         ketoan123       ACCOUNTANT    NV020 Đỗ Văn Nam
+  ketoan2        ketoan123       ACCOUNTANT    NV021 Trần Thị Oanh
+  quanly         quanly123       MANAGER       NV001 Nguyễn Văn An   (Kỹ thuật)
+  quanlykd       quanly123       MANAGER       NV007 Nguyễn Thị Lan  (Kinh doanh)
+  quanlymkt      quanly123       MANAGER       NV012 Lê Minh Quân    (Marketing)
+  nhanvien       nhanvien123     EMPLOYEE      NV002 Trần Quốc Bảo   (Kỹ thuật)
+  nhanvienkd     nhanvien123     EMPLOYEE      NV008 Đặng Văn Hùng   (Kinh doanh)
+  nhanvienmkt    nhanvien123     EMPLOYEE      NV013 Trịnh Thu Trang (Marketing)
+
+Chỉ thêm/cập nhật tài khoản, KHÔNG xóa chấm công / đầu việc / KPI:
+
+  cd backend
+  node prisma/upsert-accounts.js
+
+
+7. CHẠY LẠI HÀNG NGÀY (ĐÃ CÀI XONG)
+-----------------------------------
+1) docker compose up -d hrpro-mysql
+2) cd backend  &&  npm run dev
+3) cd fontend  &&  npm run dev
+4) Mở http://localhost:3000
+
+
+8. DỪNG DỊCH VỤ
+---------------
+- Frontend / backend: Ctrl + C trong từng cửa sổ terminal
+- MySQL Docker:
+
+    docker compose stop hrpro-mysql
+
+  Tắt cả stack Docker (kể cả backend container nếu đã bật mục 5):
+
+    docker compose down
+
+  Xuống kèm xóa volume MySQL (MẤT TOÀN BỘ DỮ LIỆU):
+
+    docker compose down -v
+
+
+9. LỆNH HỮU ÍCH
+---------------
+Backend (thư mục backend/):
+
+  npm run dev              chạy dev (nodemon)
+  npm start                chạy production
+  npm run seed             nạp lại toàn bộ dữ liệu mẫu (xóa đầu việc)
+  npx prisma migrate dev   tạo / chạy migration
+  npx prisma generate      sinh Prisma Client
+  npx prisma studio        xem / sửa DB trên giao diện
+  npm test                 Jest (không cần MySQL)
+
+Frontend (thư mục fontend/):
+
+  npm run dev              http://localhost:3000
+  npm run build            build production
+  npm start                chạy bản đã build
+  npm test                 Vitest
+
+
+10. LỖI THƯỜNG GẶP
+------------------
+  Can't reach database server
+    → MySQL chưa chạy, hoặc sai cổng 3306 / 3307 trong DATABASE_URL.
+
+  P1003: Database hrpro does not exist
+    → Tạo DB utf8mb4, hoặc bật lại container hrpro-mysql.
+
+  Cannot find module '@prisma/client'
+    → Trong backend:  npx prisma generate
+
+  GET /api/... 404 trên cổng 5000
+    → Backend local đang lắng nghe 5001.
+      Đặt NEXT_PUBLIC_API_URL=http://localhost:5001/api rồi restart  npm run dev  của frontend.
+
+  Alert "Loi he thong, vui long thu lai sau"
+    → Backend 500. Chạy  npx prisma migrate dev  rồi restart backend.
+
+  Kanban trống dù API 200
+    → Chưa seed việc, hoặc đang xem kỳ không có dueDate.  npm run seed
+
+  Frontend CORS
+    → backend/.env có  CORS_ORIGIN=*
+
+  Token hết hạn (401)
+    → Đăng nhập lại.
+
+  Chữ Việt hiện ?????
+    → Database không utf8mb4.
+
+  Cổng 3000 / 5001 bị chiếm
+    → Tắt process cũ, hoặc đổi PORT trong backend/.env
+      (nhớ sửa luôn NEXT_PUBLIC_API_URL cho khớp).
+
+
+11. KIỂM TRA NHANH SAU KHI CHẠY
+-------------------------------
+  [ ] http://localhost:5001/api/health   → success: true
+  [ ] http://localhost:5001/api-docs     → Swagger mở được
+  [ ] http://localhost:3000              → form đăng nhập
+  [ ] Đăng nhập admin / admin123         → vào Dashboard

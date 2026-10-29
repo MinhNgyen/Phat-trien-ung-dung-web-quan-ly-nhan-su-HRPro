@@ -49,9 +49,15 @@ Kiểm tra: `GET http://localhost:5000/api/health`
 |---|---|---|---|
 | admin | admin123 | ADMIN | — |
 | hr123 | hr123456 | HR | NV016 Phạm Thu Hà |
+| hr2 | hr123456 | HR | NV017 Võ Thị Kim |
 | ketoan | ketoan123 | ACCOUNTANT | NV020 Đỗ Văn Nam |
-| quanly | quanly123 | MANAGER | NV001 Nguyễn Văn An |
-| nhanvien | nhanvien123 | EMPLOYEE | NV002 Trần Quốc Bảo |
+| ketoan2 | ketoan123 | ACCOUNTANT | NV021 Trần Thị Oanh |
+| quanly | quanly123 | MANAGER | NV001 Nguyễn Văn An (Kỹ thuật) |
+| quanlykd | quanly123 | MANAGER | NV007 Nguyễn Thị Lan (Kinh doanh) |
+| quanlymkt | quanly123 | MANAGER | NV012 Lê Minh Quân (Marketing) |
+| nhanvien | nhanvien123 | EMPLOYEE | NV002 Trần Quốc Bảo (Kỹ thuật) |
+| nhanvienkd | nhanvien123 | EMPLOYEE | NV008 Đặng Văn Hùng (Kinh doanh) |
+| nhanvienmkt | nhanvien123 | EMPLOYEE | NV013 Trịnh Thu Trang (Marketing) |
 
 ## 4. NPM scripts
 

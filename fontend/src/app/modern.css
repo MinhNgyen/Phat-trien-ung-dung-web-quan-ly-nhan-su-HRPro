@@ -167,8 +167,6 @@
 .steps .step.done { color: var(--text); }
 .steps .step.done .dot { background: var(--success); border-color: var(--success); color: #fff; }
 .steps .step.current .dot { border-color: var(--primary); color: var(--primary); }
-.steps .bar { height: 2px; flex: 0 0 24px; background: var(--border); }
-.steps .bar.done { background: var(--success); }
 .metric-row { display: flex; gap: 22px; padding: 12px 18px; flex-wrap: wrap; }
 .metric-row div { font-size: 12px; color: var(--text-muted); }
 .metric-row strong { display: block; font-size: 17px; color: var(--text); }

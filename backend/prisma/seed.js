@@ -374,6 +374,48 @@ const accounts = [
     role: "EMPLOYEE",
     employeeCode: "NV002",
   },
+  {
+    username: "quanlykd",
+    password: "quanly123",
+    fullName: "Nguyễn Thị Lan",
+    role: "MANAGER",
+    employeeCode: "NV007",
+  },
+  {
+    username: "quanlymkt",
+    password: "quanly123",
+    fullName: "Lê Minh Quân",
+    role: "MANAGER",
+    employeeCode: "NV012",
+  },
+  {
+    username: "hr2",
+    password: "hr123456",
+    fullName: "Võ Thị Kim",
+    role: "HR",
+    employeeCode: "NV017",
+  },
+  {
+    username: "ketoan2",
+    password: "ketoan123",
+    fullName: "Trần Thị Oanh",
+    role: "ACCOUNTANT",
+    employeeCode: "NV021",
+  },
+  {
+    username: "nhanvienkd",
+    password: "nhanvien123",
+    fullName: "Đặng Văn Hùng",
+    role: "EMPLOYEE",
+    employeeCode: "NV008",
+  },
+  {
+    username: "nhanvienmkt",
+    password: "nhanvien123",
+    fullName: "Trịnh Thu Trang",
+    role: "EMPLOYEE",
+    employeeCode: "NV013",
+  },
 ];
 
 function pad(n) {
@@ -649,7 +691,7 @@ async function main() {
   console.log("Tài khoản đăng nhập:");
   for (const a of accounts) {
     const who = a.employeeCode ? `${a.fullName} (${a.employeeCode})` : a.fullName;
-    console.log(`  ${a.username.padEnd(10)} / ${a.password.padEnd(12)}  ${a.role.padEnd(11)}  ${who}`);
+    console.log(`  ${a.username.padEnd(12)} / ${a.password.padEnd(12)}  ${a.role.padEnd(11)}  ${who}`);
   }
 }
 
