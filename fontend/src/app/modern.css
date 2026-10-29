@@ -1,0 +1,144 @@
+/* Lớp giao diện hiện đại: chỉ áp dụng trong .page.modern (Dashboard, Tính lương, KPI) + chuông thông báo.
+   Không sửa style.css cũ; dùng lại đúng biến màu (--primary, --border...). */
+
+/* ---------- chuông thông báo ---------- */
+.notif-wrap { position: relative; }
+.notif-count { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+.notif-panel { position: absolute; right: 0; top: calc(100% + 10px); width: 350px; max-height: 440px; overflow-y: auto; background: var(--card);
+  border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 23, 42, .14); z-index: 60; }
+.notif-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13.5px; }
+.notif-head button { background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; font-family: inherit; }
+.notif-head button:disabled { color: var(--text-muted); cursor: default; }
+.notif-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); position: relative; }
+.notif-row:hover { background: var(--bg); }
+.notif-row.unread { background: #f5f9ff; }
+.notif-row.unread::before { content: ''; position: absolute; left: 6px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--primary); }
+.notif-item { display: flex; gap: 10px; flex: 1; padding: 11px 6px 11px 18px; text-decoration: none; color: inherit; cursor: pointer; }
+.notif-x { background: none; border: none; color: var(--text-muted); font-size: 18px; width: 30px; cursor: pointer; opacity: 0; transition: opacity .12s; }
+.notif-row:hover .notif-x { opacity: 1; }
+.notif-x:hover { color: var(--danger); }
+.notif-tabs { display: flex; gap: 4px; padding: 8px 12px 0; border-bottom: 1px solid var(--border); }
+.notif-tabs button { background: none; border: none; padding: 7px 10px; font-size: 12.5px; font-family: inherit; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
+.notif-tabs button.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.notif-foot { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; font-size: 11.5px; color: var(--text-muted); background: #f8fafc; border-radius: 0 0 12px 12px; }
+.notif-foot button { background: none; border: none; color: var(--primary); font-size: 11.5px; cursor: pointer; font-family: inherit; }
+.notif-head .spin { display: inline-block; animation: notif-spin .8s linear infinite; }
+@keyframes notif-spin { to { transform: rotate(360deg); } }
+.notif-btn.ringing { animation: notif-ring .6s ease-in-out 2; transform-origin: 50% 20%; }
+@keyframes notif-ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-6deg); } }
+.notif-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+.notif-icon.tone-warning { background: #fffbeb; } .notif-icon.tone-danger { background: #fef2f2; }
+.notif-icon.tone-info { background: #eff6ff; } .notif-icon.tone-success { background: #f0fdf4; }
+.notif-title { font-size: 13px; font-weight: 600; line-height: 1.35; }
+.notif-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.notif-empty { padding: 30px 14px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+/* ---------- nền chung cho trang .modern ---------- */
+.modern .page-header h1 { font-size: 22px; letter-spacing: -.01em; }
+.modern .card { border-radius: 14px; box-shadow: 0 1px 2px rgba(15, 23, 42, .05); }
+.modern .card-header { padding: 14px 18px; }
+.modern .stats-grid { gap: 14px; }
+.modern .stat-card { border-radius: 14px; box-shadow: none; padding: 16px 18px; position: relative; transition: transform .15s, box-shadow .15s, border-color .15s; }
+.modern a.stat-card { display: block; text-decoration: none; color: inherit; }
+.modern .stat-card.is-link { cursor: pointer; }
+.modern .stat-card.is-link:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, .08); border-color: #c7d2e5; }
+.modern .stat-card .go { position: absolute; top: 14px; right: 16px; color: var(--text-muted); font-size: 13px; opacity: 0; transition: opacity .15s; }
+.modern .stat-card.is-link:hover .go { opacity: 1; }
+.modern .stat-icon { width: 36px; height: 36px; margin-bottom: 10px; }
+.modern .stat-value { font-size: 24px; letter-spacing: -.02em; }
+.modern table th { position: sticky; top: 0; z-index: 1; background: #f8fafc; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); white-space: nowrap; }
+.modern table td { vertical-align: middle; }
+.modern table tbody tr { transition: background .12s; }
+.modern table tbody tr:hover { background: #f8fafc; }
+.modern .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.modern th.sortable { cursor: pointer; user-select: none; }
+.modern th.sortable:hover { color: var(--primary); }
+
+/* thanh công cụ lọc */
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+.toolbar .form-control { width: auto; min-width: 150px; padding: 7px 11px; }
+.toolbar .spacer { margin-left: auto; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: var(--card);
+  font-size: 12.5px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all .12s; }
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+.chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.chip .n { font-size: 11px; opacity: .8; }
+.chip.removable::after { content: '×'; font-size: 14px; line-height: 1; }
+
+/* ---------- Dashboard ---------- */
+.checkin-card { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 18px 22px; margin-bottom: 18px; border-radius: 14px; color: #fff;
+  background: linear-gradient(120deg, #1a56db 0%, #1340a8 100%); box-shadow: 0 6px 20px rgba(26, 86, 219, .25); }
+.checkin-card .greet { font-size: 13px; opacity: .85; }
+.checkin-card .clock { font-size: 34px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.checkin-card .date { font-size: 12.5px; opacity: .85; text-transform: capitalize; }
+.checkin-card .status { flex: 1; min-width: 200px; }
+.checkin-card .status strong { font-size: 15px; display: block; margin-bottom: 3px; }
+.checkin-card .status span { font-size: 12.5px; opacity: .88; }
+.checkin-card .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.checkin-card .btn { padding: 10px 18px; font-weight: 600; }
+.checkin-card .btn-in { background: #fff; color: var(--primary); }
+.checkin-card .btn-out { background: rgba(255, 255, 255, .16); color: #fff; border: 1px solid rgba(255, 255, 255, .45); }
+.checkin-card .btn:disabled { opacity: .45; cursor: not-allowed; }
+.checkin-card select { padding: 9px 10px; border-radius: 8px; border: none; font-family: inherit; font-size: 13px; }
+.checkin-card.muted { background: #f1f5f9; color: var(--text-muted); box-shadow: none; border: 1px dashed var(--border); }
+
+.dept-detail { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 14px 18px; margin-bottom: 20px; }
+.dept-detail .dd-name { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.dept-detail .dd-dot { width: 12px; height: 12px; border-radius: 50%; }
+.dept-detail .dd-metric { font-size: 12px; color: var(--text-muted); }
+.dept-detail .dd-metric strong { display: block; font-size: 17px; color: var(--text); }
+.dept-detail .dd-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* ---------- Tính lương ---------- */
+.pay-status { display: flex; flex-direction: column; gap: 12px; }
+.pay-status .row { display: flex; justify-content: space-between; font-size: 13.5px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+.pay-status .row:last-of-type { border-bottom: none; }
+.pay-status .row span { color: var(--text-muted); }
+.pill-net { display: inline-block; padding: 3px 10px; border-radius: 20px; background: #eff6ff; color: var(--primary); font-weight: 700; }
+
+/* ---------- KPI ---------- */
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 12px; padding-top: 6px; }
+.podium .pd { flex: 1; max-width: 140px; text-align: center; }
+.podium .pd .emp-avatar { margin: 0 auto 6px; width: 44px; height: 44px; }
+.podium .pd .name { font-size: 12.5px; font-weight: 600; line-height: 1.25; min-height: 32px; }
+.podium .pd .score { font-size: 18px; font-weight: 700; color: var(--primary); }
+.podium .pd .step { margin-top: 6px; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px; font-size: 20px; color: #fff; }
+.podium .pd.p1 .step { height: 74px; background: linear-gradient(#f59e0b, #fbbf24); }
+.podium .pd.p2 .step { height: 54px; background: linear-gradient(#94a3b8, #cbd5e1); }
+.podium .pd.p3 .step { height: 40px; background: linear-gradient(#b45309, #d97706); }
+.kpi-cell { display: flex; align-items: center; gap: 10px; min-width: 150px; }
+.kpi-cell .kpi-bar-track { flex: 1; }
+.kpi-cell strong { width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- khu "việc cần xử lý" theo vai trò (Dashboard) ---------- */
+.mini-tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 18px 4px; }
+.panel-list { padding: 4px 18px 8px; }
+.panel-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.panel-row:last-child { border-bottom: none; }
+.panel-row .grow { flex: 1; min-width: 0; }
+.panel-row .btn { font-size: 12px; padding: 4px 10px; }
+.panel-empty { padding: 22px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+.panel-foot { padding: 10px 18px; border-top: 1px solid var(--border); font-size: 12.5px; }
+.panel-foot a { color: var(--primary); text-decoration: none; }
+.progress-line { margin: 12px 18px 2px; }
+.progress-line .top { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+.progress-line .track { height: 8px; border-radius: 4px; background: #eef2f7; overflow: hidden; }
+.progress-line .fill { height: 100%; border-radius: 4px; background: var(--success); transition: width .4s; }
+
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-nav button { border: 1px solid var(--border); background: var(--card); border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1; }
+.month-nav button:disabled { opacity: .4; cursor: default; }
+.month-nav strong { min-width: 70px; text-align: center; font-size: 13.5px; }
+.steps { display: flex; align-items: center; gap: 8px; padding: 14px 18px 4px; }
+.steps .step { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-muted); }
+.steps .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.steps .step.done { color: var(--text); }
+.steps .step.done .dot { background: var(--success); border-color: var(--success); color: #fff; }
+.steps .step.current .dot { border-color: var(--primary); color: var(--primary); }
+.steps .bar { height: 2px; flex: 0 0 24px; background: var(--border); }
+.steps .bar.done { background: var(--success); }
+.metric-row { display: flex; gap: 22px; padding: 12px 18px; flex-wrap: wrap; }
+.metric-row div { font-size: 12px; color: var(--text-muted); }
+.metric-row strong { display: block; font-size: 17px; color: var(--text); }
+.panel-actions { display: flex; gap: 8px; padding: 4px 18px 14px; flex-wrap: wrap; }

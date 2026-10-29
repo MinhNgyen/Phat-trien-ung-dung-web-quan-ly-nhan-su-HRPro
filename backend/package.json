@@ -9,12 +9,20 @@
     "seed": "node prisma/seed.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch --runInBand",
+    "test:unit": "jest -c jest.unit.config.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
   },
-  "keywords": ["hrpro", "express", "prisma", "mysql"],
+  "keywords": [
+    "hrpro",
+    "express",
+    "prisma",
+    "mysql"
+  ],
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -25,10 +33,14 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.7",
-    "prisma": "^5.22.0"
+    "prisma": "^5.22.0",
+    "supertest": "^7.0.0"
   }
 }

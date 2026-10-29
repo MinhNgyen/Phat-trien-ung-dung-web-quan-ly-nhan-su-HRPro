@@ -1,0 +1,4 @@
+/* Chỉ chứa phần BỔ SUNG cho React/Next; style.css cũ (globals.css) giữ nguyên. */
+a.nav-item { text-decoration: none; }
+.is-loading { opacity: .55; pointer-events: none; transition: opacity .15s; }
+.full-loading { margin: auto; color: var(--text-muted); }

@@ -15,6 +15,7 @@ function format(p) {
     baseSalary: toNumber(p.baseSalary),
     overtime: toNumber(p.overtime),
     allowance: toNumber(p.allowance),
+    bonus: toNumber(p.bonus),
     deduction: toNumber(p.deduction),
     grossSalary: toNumber(p.grossSalary),
     tax: toNumber(p.tax),
@@ -77,16 +78,18 @@ async function update(req, res, next) {
     if (!exist) throw ApiError.notFound('Khong tim thay bang luong');
     await payrollService.assertNotLocked(exist.month);
 
-    const allowed = ['allowance', 'deduction', 'overtime', 'workDays', 'baseSalary', 'note'];
+    const allowed = ['allowance', 'bonus', 'deduction', 'overtime', 'workDays', 'baseSalary', 'note'];
     const data = {};
     for (const k of allowed) if (req.body[k] !== undefined) data[k] = req.body[k];
 
-    // Tinh lai gross/net sau khi sua, lay giam tru gia canh tu cau hinh luong that
+    // Tinh lai gross/net sau khi sua. Giam tru gia canh: uu tien muc RIENG cua nhan vien da luu luc tinh luong
+    // (gom nguoi phu thuoc), neu khong co thi dung muc chung trong cau hinh.
     const merged = { ...exist, ...data };
-    const gross = toNumber(merged.baseSalary) + toNumber(merged.overtime) + toNumber(merged.allowance) - toNumber(merged.deduction);
+    const gross = toNumber(merged.baseSalary) + toNumber(merged.overtime) + toNumber(merged.allowance) + toNumber(merged.bonus) - toNumber(merged.deduction);
     const settings = await payrollService.getSettings();
+    const relief = exist.breakdown && exist.breakdown.taxRelief != null ? exist.breakdown.taxRelief : settings.personalRelief;
     data.grossSalary = gross;
-    data.tax = payrollService.calcTax(gross, settings.personalRelief);
+    data.tax = payrollService.calcTax(gross, relief);
     data.netSalary = gross - data.tax;
 
     const row = await prisma.payroll.update({ where: { id }, data, include });

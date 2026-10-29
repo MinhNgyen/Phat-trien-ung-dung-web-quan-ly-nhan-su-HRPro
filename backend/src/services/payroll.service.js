@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 const { ApiError } = require('../utils/response');
-const { monthRange, toNumber } = require('../utils/helpers');
+const { monthRange, toNumber, calcWorkHours } = require('../utils/helpers');
 const { DEFAULTS: SETTINGS_DEFAULTS } = require('../controllers/settings.controller');
 
 // Kiểm tra thang luong có bị khóa không
@@ -53,6 +53,7 @@ async function calculateForEmployee(employee, month, options = {}) {
 
   const attendances = await prisma.attendance.findMany({
     where: { employeeId: employee.id, date: { gte: start, lt: end } },
+    include: { shift: true },
   });
 
   // Ngày công: PRESENT + LATE được tính công
@@ -61,12 +62,14 @@ async function calculateForEmployee(employee, month, options = {}) {
   const lateCount = attendances.filter((a) => a.status === 'LATE').length;
   const lateMinutes = attendances.reduce((sum, a) => sum + (a.lateMinutes || 0), 0);
 
-  // Giờ làm thêm: phần giờ vượt quá 8h/ngày hoặc bản ghi type = OVERTIME
+  // Giờ làm thêm: bản ghi type = OVERTIME, hoặc phần giờ vượt quá độ dài CA ĐÃ XẾP
+  // (ca hành chính 08:00-17:00 dài 9h nên làm đủ ca không bị tính OT; không có ca thì mặc định 8h)
   let overtimeHours = 0;
   for (const a of attendances) {
     const hours = toNumber(a.workHours);
+    const scheduled = a.shift ? calcWorkHours(a.shift.startTime, a.shift.endTime) : 8;
     if (a.type === 'OVERTIME') overtimeHours += hours;
-    else if (hours > 8) overtimeHours += hours - 8;
+    else if (hours > scheduled) overtimeHours += hours - scheduled;
   }
 
   const salary = toNumber(employee.salary);

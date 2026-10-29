@@ -36,6 +36,14 @@ enum AttendanceType {
   BUSINESS_TRIP
 }
 
+enum TaskStatus {
+  TODO        // chưa làm
+  IN_PROGRESS // đang làm
+  REVIEW      // nhân viên báo xong, chờ quản lý duyệt
+  DONE        // đã duyệt hoàn thành (có điểm chất lượng)
+  CANCELLED   // hủy, không tính vào KPI
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique @db.VarChar(50)
@@ -88,6 +96,7 @@ model Employee {
   attendances    Attendance[]
   payrolls       Payroll[]
   kpis           Kpi[]
+  tasks          Task[]
 
   @@index([departmentId])
   @@map("employees")
@@ -172,20 +181,41 @@ model Payroll {
   @@map("payrolls")
 }
 
+// Đầu việc giao cho nhân viên. KPI của kỳ (tháng của dueDate) được tính tự động từ các việc này.
+model Task {
+  id          Int        @id @default(autoincrement())
+  employeeId  Int        @map("employee_id")
+  title       String     @db.VarChar(200)
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  weight      Int        @default(1)                       // trọng số / độ khó 1-5
+  dueDate     DateTime   @map("due_date") @db.Date          // hạn hoàn thành; tháng của nó quyết định kỳ KPI
+  completedAt DateTime?  @map("completed_at") @db.Date      // ngày hoàn thành thật (đặt khi DONE)
+  quality     Int?                                          // điểm chất lượng 0-100, bắt buộc khi DONE
+  assignedBy  String?    @map("assigned_by") @db.VarChar(120)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, dueDate])
+  @@map("tasks")
+}
+
+// Kết quả KPI theo kỳ — luôn được TÍNH LẠI từ bảng tasks (không nhập tay).
 model Kpi {
-  id         Int      @id @default(autoincrement())
-  employeeId Int      @map("employee_id")
-  period     String   @db.VarChar(7) // "2026-09"
-  sales      Int      @default(0)
-  attendance Int      @default(0)
-  task       Int      @default(0)
-  deadline   Int      @default(0)
-  quality    Int      @default(0)
-  total      Decimal  @default(0) @db.Decimal(6, 2)
-  evaluatedBy String? @map("evaluated_by") @db.VarChar(120)
-  note       String?  @db.Text
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id             Int      @id @default(autoincrement())
+  employeeId     Int      @map("employee_id")
+  period         String   @db.VarChar(7) // "2026-09"
+  totalTasks     Int      @default(0) @map("total_tasks")   // số việc (không tính việc đã hủy)
+  doneTasks      Int      @default(0) @map("done_tasks")
+  onTimeTasks    Int      @default(0) @map("on_time_tasks") // việc xong đúng hạn
+  completionRate Decimal  @default(0) @map("completion_rate") @db.Decimal(5, 2) // % hoàn thành (theo trọng số)
+  onTimeRate     Decimal  @default(0) @map("on_time_rate") @db.Decimal(5, 2)    // % đúng hạn trong số việc đã xong
+  qualityScore   Decimal  @default(0) @map("quality_score") @db.Decimal(5, 2)   // điểm chất lượng trung bình
+  total          Decimal  @default(0) @db.Decimal(6, 2)     // 40% hoàn thành + 30% đúng hạn + 30% chất lượng
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 

@@ -15,18 +15,6 @@ const createAttendanceSchema = z.object({
 
 const updateAttendanceSchema = createAttendanceSchema.partial();
 
-const kpiSchema = z.object({
-  employeeId: z.coerce.number().int().positive('Nhan vien khong hop le'),
-  period: z.string().regex(/^\d{4}-\d{2}$/, 'Ky danh gia phai dang YYYY-MM'),
-  sales: z.coerce.number().min(0).max(100).default(0),
-  attendance: z.coerce.number().min(0).max(100).default(0),
-  task: z.coerce.number().min(0).max(100).default(0),
-  deadline: z.coerce.number().min(0).max(100).default(0),
-  quality: z.coerce.number().min(0).max(100).default(0),
-  note: z.string().optional().nullable(),
-  evaluatedBy: z.string().max(120).optional().nullable(),
-});
-const updateKpiSchema = kpiSchema.partial();
 
 const calculatePayrollSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/, 'Thang phai dang YYYY-MM'),
@@ -42,5 +30,5 @@ const lockSchema = z.object({
 
 module.exports = {
   createAttendanceSchema, updateAttendanceSchema,
-  kpiSchema, updateKpiSchema, calculatePayrollSchema, lockSchema,
+  calculatePayrollSchema, lockSchema,
 };

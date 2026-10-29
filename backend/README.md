@@ -226,21 +226,36 @@ Không truyền `employeeId` → tính cho toàn bộ nhân viên đang làm vi�
 
 **Khoá lương:** sau khi `POST /api/payroll/lock { "month": "2026-09" }`, mọi thao tác sửa/xoá/tính lại tháng đó trả 403.
 
-### 6.7 KPI
+### 6.7 Tasks (đầu việc) và KPI
+
+**KPI không nhập tay** — được tính tự động từ đầu việc giao cho nhân viên.
 
 | Method | URL | Role |
 |---|---|---|
-| GET | `/api/kpi?period=&employeeId=` | ADMIN, HR, ACCOUNTANT |
-| GET | `/api/kpi/:id` | ADMIN, HR, ACCOUNTANT |
-| GET | `/api/kpi/employee/:employeeId` | ADMIN, HR, ACCOUNTANT, chính mình |
-| POST | `/api/kpi` | ADMIN, HR |
-| PUT | `/api/kpi/:id` | ADMIN, HR |
-| DELETE | `/api/kpi/:id` | ADMIN |
+| GET | `/api/tasks?employeeId=&period=&status=` | ADMIN, HR, ACCOUNTANT, MANAGER |
+| GET | `/api/tasks/employee/:employeeId?period=` | như trên, hoặc chính nhân viên đó |
+| GET | `/api/tasks/:id` | mọi role (nhân viên chỉ xem việc của mình) |
+| POST | `/api/tasks` | ADMIN, HR, MANAGER — giao việc |
+| PUT | `/api/tasks/:id` | ADMIN, HR, MANAGER — sửa / duyệt hoàn thành |
+| PATCH | `/api/tasks/:id/status` | nhân viên tự báo `TODO`/`IN_PROGRESS`/`REVIEW` việc của mình |
+| DELETE | `/api/tasks/:id` | ADMIN, HR, MANAGER |
+| GET | `/api/kpi?period=&employeeId=` | ADMIN, HR, ACCOUNTANT, MANAGER |
+| GET | `/api/kpi/employee/:employeeId` | như trên, hoặc chính nhân viên đó |
+| GET | `/api/kpi/:id` | ADMIN, HR, ACCOUNTANT, MANAGER |
+| POST | `/api/kpi/recalculate` | ADMIN, HR, MANAGER — dựng lại KPI cả kỳ từ đầu việc |
 
-Body: `{ "employeeId": 1, "period": "2026-09", "sales": 80, "attendance": 95, "task": 85, "deadline": 90, "quality": 88 }`
+**Quy trình việc:** `TODO` → `IN_PROGRESS` → `REVIEW` (nhân viên báo xong) → `DONE` (quản lý duyệt, **bắt buộc chấm `quality` 0-100**). `CANCELLED` không tính vào KPI.
 
-`total` do backend tự tính theo trọng số: sales 25%, attendance 20%, task 25%, deadline 15%, quality 15%.
-Trùng `employee + period` → 409.
+**Giao việc:** `POST /api/tasks` body `{ "employeeId": 1, "title": "Báo cáo quý", "dueDate": "2026-10-25", "weight": 3 }` (`weight` 1-5, mặc định 1).
+
+**Cách tính KPI** (`src/services/kpi.service.js`) — việc thuộc kỳ theo **tháng của `dueDate`**, mọi tỉ lệ theo trọng số việc:
+```
+completionRate = Σ weight(việc DONE)                      / Σ weight(mọi việc, trừ đã hủy) × 100
+onTimeRate     = Σ weight(DONE và completedAt ≤ dueDate) / Σ weight(việc DONE)            × 100
+qualityScore   = Σ weight × quality (việc DONE)           / Σ weight(việc DONE)
+total          = 40% completionRate + 30% onTimeRate + 30% qualityScore
+```
+Việc chưa xong nằm trong mẫu số của `completionRate`, nên KPI tháng đang chạy là KPI "tạm tính". Mỗi lần thêm/sửa/xóa việc, KPI của (nhân viên, kỳ) bị ảnh hưởng được **tự tính lại** (cả kỳ cũ lẫn kỳ mới nếu đổi hạn hoặc người nhận). Nhân viên không còn việc nào trong kỳ thì không có dòng KPI.
 
 ### 6.8 Settings (cấu hình lương)
 
@@ -277,6 +292,14 @@ Dashboard trả về:
   "onLeaveToday": 2, "monthlyPayroll": 350000000
 }
 ```
+
+---
+
+## 6b. Tài liệu API (Swagger)
+
+Chạy server rồi mở **http://localhost:5000/api-docs** (JSON thô: `/api-docs.json`).
+Gọi `POST /auth/login` để lấy token, bấm **Authorize** ở góc trên bên phải và dán token (không cần chữ "Bearer") là thử được mọi endpoint.
+Mô tả từng endpoint nằm ngay trên dòng `router.xxx(...)` trong `src/routes/*.js` (khối `@openapi`); schema dùng chung ở `src/config/swagger.js`.
 
 ---
 

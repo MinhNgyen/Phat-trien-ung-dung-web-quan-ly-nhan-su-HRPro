@@ -4,6 +4,7 @@ const { ApiError } = require('../utils/response');
 function authorize(...roles) {
   return (req, res, next) => {
     if (!req.user) return next(ApiError.unauthorized());
+    console.log('[authorize]', req.method, req.originalUrl, '| role =', JSON.stringify(req.user.role), '| cho phep =', roles.join(','));
     if (roles.length && !roles.includes(req.user.role)) {
       return next(ApiError.forbidden('Ban khong co quyen thuc hien thao tac nay'));
     }
