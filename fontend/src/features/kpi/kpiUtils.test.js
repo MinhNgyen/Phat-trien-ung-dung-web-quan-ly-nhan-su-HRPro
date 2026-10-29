@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { buildKpiPayload, buildRanking, calcTotal, clampScore, deptAverages, kpiCsvRows, progressColor, rankOf, recentPeriods, topThree } from './kpiUtils';
+import {
+  buildRanking, computeFromTasks, contributionsOf, CRITERIA, deptAverages, filterRanking,
+  kpiCsvRows, kpiSummary, progressColor, rankCounts, rankKeyOf, rankOf, recentPeriods, topThree, WEIGHTS,
+} from './kpiUtils';
 
 describe('recentPeriods', () => {
   it('12 kỳ, mới nhất trước, qua năm đúng', () => {
-    const p = recentPeriods(12, new Date(2026, 1, 15)); // tháng 2/2026
+    const p = recentPeriods(12, new Date(2026, 1, 15));
     expect(p).toHaveLength(12);
     expect(p[0]).toBe('2026-02');
     expect(p[2]).toBe('2025-12');
@@ -11,23 +14,65 @@ describe('recentPeriods', () => {
   });
 });
 
-describe('điểm', () => {
-  it('clampScore giới hạn 0–100', () => {
-    expect(clampScore(150)).toBe(100);
-    expect(clampScore(-5)).toBe(0);
-    expect(clampScore('abc')).toBe(0);
+describe('công thức KPI từ đầu việc', () => {
+  it('trọng số 40/30/30', () => {
+    expect(WEIGHTS).toEqual({ completion: 0.4, onTime: 0.3, quality: 0.3 });
+    expect(CRITERIA.map((c) => c.weight)).toEqual([0.4, 0.3, 0.3]);
   });
-  it('calcTotal theo trọng số', () => {
-    expect(calcTotal({ sales: 100, attendance: 100, task: 100, deadline: 100, quality: 100 })).toBeCloseTo(100);
-    expect(calcTotal({ sales: 80, attendance: 0, task: 0, deadline: 0, quality: 0 })).toBeCloseTo(20);
+  it('không có việc / toàn hủy → null', () => {
+    expect(computeFromTasks([])).toBeNull();
+    expect(computeFromTasks([{ status: 'CANCELLED', weight: 5 }])).toBeNull();
   });
-  it('rankOf theo ngưỡng', () => {
+  it('xong hết, đúng hạn, chất lượng 100 → 100', () => {
+    const t = { status: 'DONE', weight: 2, quality: 100, dueDate: '2026-10-10', completedAt: '2026-10-10' };
+    expect(computeFromTasks([t]).total).toBe(100);
+  });
+  it('nửa việc xong đúng hạn, chất lượng 100 → 80', () => {
+    const stats = computeFromTasks([
+      { status: 'DONE', weight: 2, quality: 100, dueDate: '2026-10-10', completedAt: '2026-10-10' },
+      { status: 'TODO', weight: 2, dueDate: '2026-10-20' },
+    ]);
+    expect(stats).toEqual({
+      totalTasks: 2, doneTasks: 1, onTimeTasks: 1,
+      completionRate: 50, onTimeRate: 100, qualityScore: 100, total: 80,
+    });
+  });
+  it('xong trễ: đúng hạn 0, chất lượng 80 → 64', () => {
+    const stats = computeFromTasks([
+      { status: 'DONE', weight: 1, quality: 80, dueDate: '2026-10-10', completedAt: '2026-10-12' },
+    ]);
+    expect(stats.completionRate).toBe(100);
+    expect(stats.onTimeRate).toBe(0);
+    expect(stats.qualityScore).toBe(80);
+    expect(stats.total).toBe(64);
+  });
+  it('việc REVIEW chưa tính hoàn thành; việc hủy không vào mẫu số', () => {
+    const stats = computeFromTasks([
+      { status: 'REVIEW', weight: 3, dueDate: '2026-10-10' },
+      { status: 'CANCELLED', weight: 5, dueDate: '2026-10-10' },
+    ]);
+    expect(stats.totalTasks).toBe(1);
+    expect(stats.doneTasks).toBe(0);
+    expect(stats.completionRate).toBe(0);
+    expect(stats.total).toBe(0);
+  });
+  it('chất lượng / đúng hạn theo trọng số', () => {
+    const stats = computeFromTasks([
+      { status: 'DONE', weight: 3, quality: 100, dueDate: '2026-10-10', completedAt: '2026-10-10' },
+      { status: 'DONE', weight: 1, quality: 0, dueDate: '2026-10-10', completedAt: '2026-10-20' },
+    ]);
+    expect(stats.qualityScore).toBe(75);
+    expect(stats.onTimeRate).toBe(75);
+  });
+  it('contributionsOf', () => {
+    const pts = contributionsOf({ completionRate: 50, onTimeRate: 100, qualityScore: 100 });
+    expect(pts.map((p) => p.points)).toEqual([20, 30, 30]);
+  });
+  it('rankOf / progressColor', () => {
     expect(rankOf(90).lbl).toBe('Xuất sắc');
     expect(rankOf(80).lbl).toBe('Tốt');
     expect(rankOf(70).lbl).toBe('Khá');
     expect(rankOf(69.9).lbl).toBe('Cần cải thiện');
-  });
-  it('progressColor', () => {
     expect(progressColor(85)).toBe('var(--success)');
     expect(progressColor(null)).toBe('var(--danger)');
   });
@@ -43,31 +88,23 @@ describe('xếp hạng', () => {
   const records = [{ employeeId: 1, total: 70 }, { employeeId: 2, total: 90 }, { employeeId: 3, total: 80 }];
   const ranked = buildRanking(emps, records);
 
-  it('sắp xếp giảm dần, người chưa chấm xuống cuối', () => {
+  it('sắp xếp giảm dần, người chưa có việc xuống cuối', () => {
     expect(ranked.map((r) => r.e.id)).toEqual([2, 3, 1, 4]);
     expect(ranked[3].rec).toBeNull();
   });
-  it('top 3 bỏ qua người chưa chấm', () => { expect(topThree(ranked).map((r) => r.e.id)).toEqual([2, 3, 1]); });
+  it('top 3 bỏ qua người chưa có KPI', () => { expect(topThree(ranked).map((r) => r.e.id)).toEqual([2, 3, 1]); });
   it('trung bình theo phòng ban', () => {
     expect(deptAverages(ranked, () => '#000')).toEqual([
       { name: 'KT', avg: 80, color: '#000' }, { name: 'NS', avg: 80, color: '#000' },
     ]);
   });
-  it('CSV có hàng tiêu đề và "Chưa chấm"', () => {
+  it('CSV có hàng tiêu đề và "Chưa có việc"', () => {
     const rows = kpiCsvRows(ranked);
     expect(rows).toHaveLength(5);
-    expect(rows[4][5]).toBe('Chưa chấm');
+    expect(rows[0][11]).toBe('Xếp loại');
+    expect(rows[4][11]).toBe('Chưa có việc');
   });
 });
-
-describe('buildKpiPayload', () => {
-  it('ép điểm về 0–100 và gắn người đánh giá', () => {
-    const p = buildKpiPayload({ sales: '120', attendance: '50', task: '', deadline: 70, quality: -1 }, 7, '2026-10', 'Admin');
-    expect(p).toEqual({ employeeId: 7, period: '2026-10', evaluatedBy: 'Admin', sales: 100, attendance: 50, task: 0, deadline: 70, quality: 0 });
-  });
-});
-
-import { filterRanking, kpiSummary, rankCounts, rankKeyOf } from './kpiUtils';
 
 describe('lọc & tổng hợp KPI', () => {
   const emps = [

@@ -337,7 +337,7 @@ const employees = [
   ],
 ];
 
-// Tài khoản mẫu cho từng vai trò
+// Tài khoản mẫu cho từng vai trò (mật khẩu reset mỗi lần seed)
 const accounts = [
   {
     username: "admin",
@@ -359,6 +359,13 @@ const accounts = [
     fullName: "Đỗ Văn Nam",
     role: "ACCOUNTANT",
     employeeCode: "NV020",
+  },
+  {
+    username: "quanly",
+    password: "quanly123",
+    fullName: "Nguyễn Văn An",
+    role: "MANAGER",
+    employeeCode: "NV001",
   },
   {
     username: "nhanvien",
@@ -437,7 +444,7 @@ async function main() {
     const hashed = await bcrypt.hash(a.password, SALT);
     const user = await prisma.user.upsert({
       where: { username: a.username },
-      update: { fullName: a.fullName, role: a.role },
+      update: { fullName: a.fullName, role: a.role, password: hashed },
       create: {
         username: a.username,
         password: hashed,
@@ -639,7 +646,11 @@ async function main() {
   console.log("✔ Đã tạo cấu hình lương mặc định");
 
   console.log("--- Seed hoàn tất ---");
-  console.log("Đăng nhập: admin / admin123");
+  console.log("Tài khoản đăng nhập:");
+  for (const a of accounts) {
+    const who = a.employeeCode ? `${a.fullName} (${a.employeeCode})` : a.fullName;
+    console.log(`  ${a.username.padEnd(10)} / ${a.password.padEnd(12)}  ${a.role.padEnd(11)}  ${who}`);
+  }
 }
 
 main()

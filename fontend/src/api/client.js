@@ -1,8 +1,12 @@
 /**
  * Lõi gọi API: gắn token, đọc { success, data, message }, ném Error có message tiếng Việt từ backend.
  * Khi gặp 401 -> xóa token và phát sự kiện để AuthContext đưa người dùng về trang đăng nhập.
+ * Backend .env dùng PORT=5001; Next có thể đã inline localhost:5000 lúc start — đổi sang 5001.
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export function resolveApiUrl(raw) {
+  return String(raw || 'http://localhost:5001/api').replace(/localhost:5000\b/, 'localhost:5001');
+}
+export const API_URL = resolveApiUrl(process.env.NEXT_PUBLIC_API_URL);
 export const UNAUTHORIZED_EVENT = 'hrpro:unauthorized';
 const TOKEN_KEY = 'hrpro_token';
 const isBrowser = typeof window !== 'undefined';
@@ -47,6 +51,7 @@ export async function request(path, options = {}) {
 export const get = (p) => request(p);
 export const post = (p, body) => request(p, { method: 'POST', body: JSON.stringify(body) });
 export const put = (p, body) => request(p, { method: 'PUT', body: JSON.stringify(body) });
+export const patch = (p, body) => request(p, { method: 'PATCH', body: JSON.stringify(body) });
 export const del = (p) => request(p, { method: 'DELETE' });
 
 // Ghép query string, bỏ qua giá trị rỗng

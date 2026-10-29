@@ -1,7 +1,7 @@
 # HRPro Frontend (Next.js)
 
 Chuyển từ HTML/JS thuần sang Next.js (App Router, JavaScript). Giữ nguyên `style.css` cũ (`src/app/globals.css`)
-và các endpoint backend (`NEXT_PUBLIC_API_URL`, mặc định `http://localhost:5000/api`).
+và các endpoint backend (`NEXT_PUBLIC_API_URL`, mặc định `http://localhost:5001/api`).
 
 ## Chạy
 ```bash

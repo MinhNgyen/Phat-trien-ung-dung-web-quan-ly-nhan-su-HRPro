@@ -23,7 +23,7 @@ import PayrollPanel from './PayrollPanel';
 import RecentEmployees from './RecentEmployees';
 import { averageOf, deptDetail, filterByDept } from './dashboardUtils';
 
-const HR_ROLES = 'admin,hr';
+const HR_ROLES = 'admin,hr,manager';
 const FINANCE_ROLES = 'admin,accountant';
 
 export default function DashboardPage() {

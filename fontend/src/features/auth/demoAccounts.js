@@ -3,5 +3,6 @@ export const DEMO_ACCOUNTS = [
   ['admin', 'admin123', 'admin'],
   ['hr123', 'hr123456', 'hr'],
   ['ketoan', 'ketoan123', 'accountant'],
+  ['quanly', 'quanly123', 'manager'],
   ['nhanvien', 'nhanvien123', 'employee'],
 ];

@@ -48,8 +48,8 @@ export function buildNotifications(c) {
     }
   }
   if (missingKpi > 0) {
-    list.push({ id: `kpi-missing:${month}:${missingKpi}`, priority: 4, tone: 'info', icon: '📝', title: `${missingKpi} nhân viên chưa được chấm KPI kỳ ${month}`,
-      desc: 'Có thể chấm ngay trên Dashboard hoặc trang Hiệu suất KPI.', href: '/performance' });
+    list.push({ id: `kpi-missing:${month}:${missingKpi}`, priority: 4, tone: 'info', icon: '📋', title: `${missingKpi} nhân viên chưa có KPI kỳ ${month}`,
+      desc: 'Giao việc trên Kanban để hệ thống tự tính KPI.', href: '/performance' });
   }
   if (ownKpi) {
     list.push({ id: `kpi:${ownKpi.id}:${ownKpi.total}`, priority: 5, tone: 'success', icon: '🎯', title: `KPI kỳ ${ownKpi.period} của bạn: ${fmtScore(ownKpi.total)} điểm`,

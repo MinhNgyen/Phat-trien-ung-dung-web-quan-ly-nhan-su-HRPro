@@ -20,7 +20,7 @@ describe('buildNotifications', () => {
   });
   it('nhắc KPI chưa chấm, KPI của mình có xếp loại', () => {
     const l = buildNotifications({ ...base, missingKpi: 4, ownKpi: { id: 9, period: '2026-10', total: 92 } });
-    expect(l[0].title).toMatch(/4 nhân viên chưa được chấm KPI/);
+    expect(l[0].title).toMatch(/4 nhân viên chưa có KPI/);
     expect(l[1].title).toMatch(/92/);
     expect(l[1].desc).toMatch(/Xuất sắc/);
   });

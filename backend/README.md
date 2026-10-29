@@ -45,12 +45,13 @@ Kiểm tra: `GET http://localhost:5000/api/health`
 
 ## 3. Tài khoản mẫu
 
-| Username | Password | Role |
-|---|---|---|
-| admin | admin123 | ADMIN |
-| hr | hr123456 | HR |
-| ketoan | ketoan123 | ACCOUNTANT |
-| nhanvien | nhanvien123 | EMPLOYEE |
+| Username | Password | Role | Nhân viên gắn với TK |
+|---|---|---|---|
+| admin | admin123 | ADMIN | — |
+| hr123 | hr123456 | HR | NV016 Phạm Thu Hà |
+| ketoan | ketoan123 | ACCOUNTANT | NV020 Đỗ Văn Nam |
+| quanly | quanly123 | MANAGER | NV001 Nguyễn Văn An |
+| nhanvien | nhanvien123 | EMPLOYEE | NV002 Trần Quốc Bảo |
 
 ## 4. NPM scripts
 
